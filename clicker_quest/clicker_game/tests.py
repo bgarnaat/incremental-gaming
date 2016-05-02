@@ -1,7 +1,8 @@
 from django.test import TestCase
 from django.conf import settings
+from clicker_game.models import Clicker_Game
 import factory
-
+import datetime
 # Create your tests here.
 
 
@@ -28,4 +29,12 @@ class GameTest(TestCase):
 
     def test_game_exists(self):
         """Test a game can be made with the proper properties."""
-        import pdb; pdb.set_trace()
+        self.game = Clicker_Game(owner=self.user, game_data=u'JSON goes here.',
+                                 name=u'Test Game')
+        self.game.save()
+        # Test the game is owned by a user and can easily be retrieved
+        self.assertEqual(self.game, self.user.game)
+        self.assertEqual(self.game.game_data, u'JSON goes here.')
+        self.assertEqual(self.game.name, u'Test Game')
+        self.assertIsInstance(self.game.modified, datetime.datetime)
+        self.assertIsInstance(self.game.created, datetime.datetime)

@@ -10,7 +10,7 @@ class Clicker_Game(models.Model):
     owner = models.OneToOneField(settings.AUTH_USER_MODEL,
                                  on_delete=models.CASCADE,
                                  related_name='game')
-    game_data = models.CharField()
+    game_data = models.TextField()
     modified = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
     name = models.CharField(max_length=200)
