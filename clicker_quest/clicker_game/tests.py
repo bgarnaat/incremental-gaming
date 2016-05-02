@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.conf import settings
-from clicker_game.models import Clicker_Game
+from clicker_game.models import Clicker_Game, Game_Instance
 import factory
 import datetime
 # Create your tests here.
@@ -23,7 +23,7 @@ class UserFactory(factory.django.DjangoModelFactory):
     password = factory.PostGenerationMethodCall('set_password', 'password')
 
 
-class GameTest(TestCase):
+class ClickerGameTest(TestCase):
     def setUp(self):
         self.user = UserFactory.create()
 
@@ -33,8 +33,27 @@ class GameTest(TestCase):
                                  name=u'Test Game')
         self.game.save()
         # Test the game is owned by a user and can easily be retrieved
-        self.assertEqual(self.game, self.user.game)
+        self.assertEqual(self.game.owner, self.user)
         self.assertEqual(self.game.game_data, u'JSON goes here.')
         self.assertEqual(self.game.name, u'Test Game')
         self.assertIsInstance(self.game.modified, datetime.datetime)
         self.assertIsInstance(self.game.created, datetime.datetime)
+
+
+class GameInstanceTest(TestCase):
+    def setUp(self):
+        self.user = UserFactory.create()
+        self.game = Clicker_Game(owner=self.user, game_data=u'JSON goes here.',
+                                 name=u'Test Game')
+        self.game.save()
+
+    def test_make_game_instance(self):
+        """Test An Game Instance can be made."""
+        self.game1 = Game_Instance(user=self.user, game=self.game,
+                                   data=u'JSON Stuff')
+        self.game1.save()
+        self.assertEqual(self.game1.user, self.user)
+        self.assertEqual(self.game1.game, self.game)
+        self.assertEqual(self.game1.data, u'JSON Stuff')
+        self.assertIsInstance(self.game1.modified, datetime.datetime)
+        self.assertIsInstance(self.game1.created, datetime.datetime)
