@@ -8,9 +8,9 @@ class GameModel(object):
 
         May raise a ValueError if the model does not validate.
         """
-        pass
+        self.game_data = game_model_data
 
-    def report_full_game_state(self, game_state):
+    def report_full_game_state(self):
         """
         Outputs complete information about the given game state for the front end to display.
 
