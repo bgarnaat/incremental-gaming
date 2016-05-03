@@ -11,4 +11,10 @@ class GameView(View):
 
     def get(self, request):
         the_game = Game_Instance.objects.get(user=self.request.user)
-        return render(request, self.template_name, {'the_game': the_game})
+        return render(request, self.template_name, {'data': the_game.data})
+
+    def post(self, request):
+        the_game = Game_Instance.objects.get(user=self.request.user)
+        the_game.data['clicks'] += 1
+        the_game.save()
+        return render(request, self.template_name, {'data': the_game.data})
