@@ -1,9 +1,57 @@
 from django.test import TestCase
 from django.conf import settings
 from clicker_game.models import Clicker_Game, Game_Instance
+from clicker_game.game_model import GameModel
 import factory
 import datetime
+import json
 # Create your tests here.
+
+JSON_TEST = '''
+{
+    "name": "cookie game",
+    "resources": {
+        "cookies": {
+            "description": "bake cookies"
+        }
+    },
+    "buildings": {
+        "cursor": {
+            "description": "clicks on cookies",
+            "cost": {"cookies": 15},
+            "cost_factor": 1.15,
+            "income": {"cookies": 1}
+        },
+        "grandma": {
+            "description": "a nice grandma",
+            "cost": {"cookies": 100},
+            "cost_factor": 1.15,
+            "income": {"cookies": 5}
+        }
+    },
+    "upgrades": {
+        "two fingers at once": {
+            "description": "doubles cursor income",
+            "cost": {"cookies": 100},
+            "buildings": {
+                "cursor": {
+                    "income": {
+                        "cookies": {
+                            "multiplier": 2
+                        }
+                    }
+                }
+            }
+        },
+        "ancestry": {
+            "description": "enables grandmas",
+            "unlock": {
+                "buildings": {"cursor": 5}
+            }
+        }
+    }
+}
+'''
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -57,3 +105,10 @@ class GameInstanceTest(TestCase):
         self.assertEqual(self.game1.data, u'JSON Stuff')
         self.assertIsInstance(self.game1.modified, datetime.datetime)
         self.assertIsInstance(self.game1.created, datetime.datetime)
+
+class JSONReadIn(TestCase):
+    def setUp(self):
+        self.game = GameModel(json.loads(JSON_TEST))
+
+    def test_stuff(TestCase):
+        import pbd; pbd.set_trace()
