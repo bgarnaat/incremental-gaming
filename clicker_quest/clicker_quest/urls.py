@@ -15,10 +15,10 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
-from clicker_game.views import GameView
+from clicker_game.views import MainView
 
 urlpatterns = [
-    url(r'^test/', GameView.as_view()),
+    url(r'^test/', MainView.as_view()),
     url(r'^admin/', admin.site.urls),
     url(r'^accounts/', include('registration.backends.simple.urls')),
 ]
