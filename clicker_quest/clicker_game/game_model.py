@@ -41,6 +41,13 @@ def validate_game_model(data):
                     if upgrade_name not in model.upgrades:
                         raise ValueError("Unlock references nonexistent upgrade", upgrade_name)
 
+        if len(data['resources']) != len(model.resources):
+            raise ValueError("Two resources share the same name")
+        if len(data['buildings']) != len(model.buildings):
+            raise ValueError("Two buildings share the same name")
+        if len(data['upgrades']) != len(model.upgrades):
+            raise ValueError("Two upgrades share the same name")
+
         for resource in model.resources.values():
             if not isinstance(resource.maximum, (int, float, type(None))):
                 raise ValueError("A resource has a non-numerical maximum")
@@ -142,8 +149,6 @@ class GameModel(object):
                 description=resource.get('description', ""),
                 maximum=resource.get('maximum'),
             )
-            if resource.name in self.resources:
-                raise ValueError("Two resources share the same name", resource.name)
             self.resources[resource.name] = resource
 
         # buildings
@@ -158,8 +163,6 @@ class GameModel(object):
                 income=building.get('income', {}),
                 storage=building.get('storage', {}),
             )
-            if building.name in self.buildings:
-                raise ValueError("Two buildings share the same name", building.name)
             self.buildings[building.name] = building
 
         # upgrades
@@ -172,8 +175,6 @@ class GameModel(object):
                 cost=upgrade['cost'],
                 buildings=upgrade.get('buildings', {}),
             )
-            if upgrade.name in self.upgrades:
-                raise ValueError("Two upgrades share the same name", upgrade.name)
             self.upgrades[upgrade.name] = upgrade
 
         # new game game-state
