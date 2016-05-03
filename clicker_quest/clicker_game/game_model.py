@@ -1,4 +1,5 @@
 # coding=utf-8
+from collections import OrderedDict
 
 
 class Dicted(object):
@@ -14,6 +15,7 @@ def validate_game_model(data):
     try:
         model = GameModel(data)
 
+        # noinspection PyShadowingNames
         def validate_resource_amounts(cost_data):
             for resource_name, amount in cost_data.values():
                 if resource_name not in model.resources:
@@ -21,6 +23,7 @@ def validate_game_model(data):
                 if not isinstance(amount, (int, float)):
                     raise ValueError("Non-numeric resource amount", resource_name, amount)
 
+        # noinspection PyShadowingNames
         def validate_unlock(unlock):
             if unlock is ():
                 return
@@ -37,13 +40,6 @@ def validate_game_model(data):
                 for upgrade_name in unlock['upgrades']:
                     if upgrade_name not in model.upgrades:
                         raise ValueError("Unlock references nonexistent upgrade", upgrade_name)
-
-        if len(model.ordered_resources) != len(model.resources):
-            raise ValueError("Two resources share the same name")
-        if len(model.ordered_buildings) != len(model.buildings):
-            raise ValueError("Two buildings share the same name")
-        if len(model.ordered_upgrades) != len(model.upgrades):
-            raise ValueError("Two upgrades share the same name")
 
         for resource in model.resources.values():
             if not isinstance(resource.maximum, (int, float, type(None))):
@@ -118,6 +114,8 @@ def validate_game_model(data):
                         if upgrade_name not in model.upgrades:
                             raise ValueError("Nonexistent upgrade in new game state", upgrade_name)
 
+    except ValueError:
+        raise
     except KeyError as ex:
         raise ValueError("Missing key", ex.args)
     except AttributeError as ex:
@@ -131,25 +129,25 @@ class GameModel(object):
 
         May raise a ValueError if the model does not validate.
         """
+        data = data.copy()  # don't mutate original passed in data
         # game info
         self.name = data.pop('name')
         self.description = data.pop('description')
 
         # resources
-        self.ordered_resources = []
-        self.resources = {}
+        self.resources = OrderedDict()
         for resource in data.pop('resources'):
             resource = Dicted(
                 name=self.resources['name'],
                 description=resource.get('description', ""),
                 maximum=resource.get('maximum'),
             )
+            if resource.name in self.resources:
+                raise ValueError("Two resources share the same name", resource.name)
             self.resources[resource.name] = resource
-            self.ordered_resources.append(resource)
 
         # buildings
-        self.ordered_buildings = []
-        self.buildings = {}
+        self.buildings = OrderedDict()
         for building in data.pop('buildings'):
             building = Dicted(
                 name=building['name'],
@@ -160,12 +158,12 @@ class GameModel(object):
                 income=building.get('income', {}),
                 storage=building.get('storage', {}),
             )
+            if building.name in self.buildings:
+                raise ValueError("Two buildings share the same name", building.name)
             self.buildings[building.name] = building
-            self.ordered_buildings.append(building)
 
         # upgrades
-        self.ordered_upgrades = []
-        self.upgrades = {}
+        self.upgrades = OrderedDict()
         for upgrade in data.pop('upgrades'):
             upgrade = Dicted(
                 name=upgrade['name'],
@@ -174,11 +172,15 @@ class GameModel(object):
                 cost=upgrade['cost'],
                 buildings=upgrade.get('buildings', {}),
             )
+            if upgrade.name in self.upgrades:
+                raise ValueError("Two upgrades share the same name", upgrade.name)
             self.upgrades[upgrade.name] = upgrade
-            self.ordered_upgrades.append(upgrade)
 
         # new game game-state
         self.new_game = data.pop('new_game')
+
+        if data:
+            raise ValueError("Unknown keys in game model data", data)
 
     def load_game_instance(self, game_instance, game_instance_time):
         return GameInstance(self, game_instance, game_instance_time)
@@ -248,42 +250,45 @@ class GameInstance(object):
         Return the information about the game state suitable for the client side JS to render
         the page we want the user to see
         """
-        result = {}
+        result = {
+            'resources': [],
+            'buildings': [],
+            'upgrades': [],
+        }
         # resources
         if self.resources:
-            result['resources'] = {
-                resource_name: {
-                    'description': self.model.resources[resource_name].description,
-                    'owned': resource.owned,
-                    'income': resource.income,
-                    'maximum': resource.maximum,
-                }
-                for resource_name, resource in self.resources.items()
-            }
+            for resource in self.model.resources.values():
+                owned = self.resources.get(resource.name)
+                if owned and (owned.owned or owned.income):
+                    result['resources'].append({
+                        'name': resource.name,
+                        'description': resource.description,
+                        'owned': owned.owned,
+                        'income': owned.income,
+                        'maximum': owned.maximum,
+                    })
 
         # buildings
-        result['buildings'] = {}
-        for building_name, building in self.model.buildings.items():
-            owned = building_name in self.buildings and self.buildings[building_name].owned or 0
-            income = owned and self.buildings[building_name].income or 0.0
+        for building in self.model.buildings.values():
+            owned = building.name in self.buildings and self.buildings[building.name].owned or 0
+            income = owned and self.buildings[building.name].income or building.income
             if owned or self.requirement_is_met(building.unlock):
-                result['buildings'][building_name] = {
+                result['buildings'].append({
                     'description': building.description,
                     'owned': owned,
-                    'cost': self.cost_of_building(building_name, 1),
-                    'cost10': self.cost_of_building(building_name, 10),
+                    'cost': self.cost_of_building(building.name, 1),
+                    'cost10': self.cost_of_building(building.name, 10),
                     'income': income,
-                }
+                })
 
         # upgrades
-        result['upgrades'] = {}
-        for upgrade_name, upgrade in self.model.upgrades.items():
-            if upgrade_name in self.upgrades or self.requirement_is_met(upgrade.unlock):
-                result['upgrades'][upgrade_name] = {
+        for upgrade in self.model.upgrades.values():
+            if upgrade.name in self.upgrades or self.requirement_is_met(upgrade.unlock):
+                result['upgrades'].append({
                     'description': upgrade.description,
-                    'owned': upgrade_name in self.upgrades,
+                    'owned': upgrade.name in self.upgrades,
                     'cost': upgrade.cost,
-                }
+                })
 
         return result
 
