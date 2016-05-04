@@ -20,7 +20,6 @@ class MainView(View):
     template_name = 'base.html'
 
     def get(self, request):
-        import pdb; pdb.set_trace()
         current_time = datetime.datetime.now()
         current_game = Clicker_Game.objects.all()[0]
         game_model_data = current_game.game_data
@@ -35,7 +34,11 @@ class MainView(View):
             db_instance.data = db_json
             db_instance.modified = current_time
             db_instance.save()
-            return render(request, self.template_name, {'game': front_end_json})
+            if request.is_ajax():
+                game = front_end_json
+                return JsonResponse(game)
+            else:
+                return render(request, self.template_name, {'game': front_end_json})
         else:
             # TODO: Render A New Game.
             pass
@@ -52,16 +55,17 @@ class MainView(View):
                                                       db_instance.modified)
 
         if 'building' in request.POST:
-            building_name = request.POST.get('building_name')
+            building_name = request.POST.get('name')
             number_purchased = request.POST.get('number_purchased')
             db_json, front_end_json = game_instance.purchase_building(
                 current_time, building_name, number_purchased)
         elif 'upgrade' in request.POST:
-            upgrade_name = request.POST.get('upgrade_name')
+            upgrade_name = request.POST.get('name')
             db_json, front_end_json = game_instance.purchase_upgrade(
                 current_time, upgrade_name)
         # Save new info to the database, return the new values to the front end
         db_instance.data = db_json
         db_instance.modified = current_time
         db_instance.save()
-        return JsonResponse(front_end_json)
+        game = front_end_json
+        return JsonResponse(game)
