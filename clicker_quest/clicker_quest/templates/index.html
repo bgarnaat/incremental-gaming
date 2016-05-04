@@ -33,8 +33,8 @@
       <section id="resources">
         <ul>
           {% for (resource, data) in resources %}
-          <li class="resource">
-            <span class="{{ data.color }}">{{ resource }}:</span> <span id="{{ resource }}_current">data.owned</span> / {{ data.maximum }} ({{data.income}}/s)
+          <li class="resource" id="{{ resource }}">
+            <span class="{{ data.color }}">{{ resource }}:</span> <span id="{{ resource }}_current">data.owned</span> / {% if }<span class="{{ resource }}_max">{{ data.maximum }}</span> <span class="{{ resource }}_income">({{data.income}}/s)</span>
           </li>
           <div class="popup">
             <div class="description">{{ data.description }}<div>
@@ -46,7 +46,7 @@
         <ul>
           {% for (building, data) in buildings %}
           <li class="building {% if data.owned} owned {% endif }" id="{{ building }}">
-            {{ building }} {% if data.owned %} ({{ owned }}) {% endif %}
+            {{ building }} {% if data.owned %}<span class="{{ building }}_current"> ({{ owned }}) </span>{% endif %}
             <div class="popup_L">
               <div class="description">{{ data.description }}<div>
               <ul>
@@ -67,8 +67,8 @@
       <section id="upgrades">
         <ul>
           {% for (upgrade, data) in upgrades %}
-          <li class="upgrade {% if data.owned %} owned {% endif %}" id="{{ upgrade }}">
-            {{ upgrade }} {% if data.owned %} (owned) {% endif %}
+          <li class="upgrade" data-owned="{% if data.owned %} owned {% endif %}" id="{{ upgrade }}">
+            {{ upgrade }} <span class="owned">{% if data.owned %} (owned) {% endif %}<span>
             <div class="popup_L">
               <div class="description">{{data.description}}</div>
               <ul>
