@@ -78,6 +78,8 @@ def validate_game_model(json_data):
 
         # noinspection PyShadowingNames
         def validate_resource_amounts(cost_data):
+            if not isinstance(cost_data, dict):
+                raise ValueError("Cost data must be a json object")
             for resource_name, amount in cost_data.items():
                 if resource_name not in model.resources:
                     raise ValueError("Nonexistent resource specified", resource_name)
@@ -92,16 +94,15 @@ def validate_game_model(json_data):
                 raise ValueError("Unlock must be an object with keys and values")
             if not all(x in ('buildings', 'upgrades') for x in unlock):
                 raise ValueError("Extra values in unlock", unlock)
-            if unlock:
-                if 'buildings' in unlock:
-                    for building_name, number in unlock['buildings'].items():
-                        if building_name not in model.buildings:
-                            raise ValueError("Unlock references nonexistent building", building_name)
-                        if not isinstance(number, (int, float)):
-                            raise ValueError("Non-numeric required number of buildings in unlock", number)
-                for upgrade_name in unlock.get('upgrades', ()):
-                    if upgrade_name not in model.upgrades:
-                        raise ValueError("Unlock references nonexistent upgrade", upgrade_name)
+            if 'buildings' in unlock:
+                for building_name, number in unlock['buildings'].items():
+                    if building_name not in model.buildings:
+                        raise ValueError("Unlock references nonexistent building", building_name)
+                    if not isinstance(number, (int, float)):
+                        raise ValueError("Non-numeric required number of buildings in unlock", number)
+            for upgrade_name in unlock.get('upgrades', ()):
+                if upgrade_name not in model.upgrades:
+                    raise ValueError("Unlock references nonexistent upgrade", upgrade_name)
 
         def validate_modifier(modifier):
             """Validates modifier for a value (multipliers and so forth)"""
@@ -140,7 +141,7 @@ def validate_game_model(json_data):
             validate_resource_amounts(upgrade.cost)
             for building_name, effects in upgrade.buildings.items():
                 if building_name not in model.buildings:
-                    raise ValueError("Upgrade affects cost of nonexistent building", upgrade.name, building_name)
+                    raise ValueError("Upgrade affects nonexistent building", upgrade.name, building_name)
                 for effect_type in effects:
                     if effect_type not in ('cost', 'income'):
                         raise ValueError(
@@ -153,11 +154,6 @@ def validate_game_model(json_data):
                             raise ValueError(
                                 "Upgrade affects cost for nonexistent resource",
                                 upgrade.name, building_name, resource_name
-                            )
-                        if not isinstance(cost_modifier, dict):
-                            raise ValueError(
-                                "Building cost modifier must be a json object with keys and values",
-                                upgrade.name, building_name, resource_name, cost_modifier
                             )
                         validate_modifier(cost_modifier)
 
@@ -191,8 +187,6 @@ def validate_game_model(json_data):
                         if upgrade_name not in model.upgrades:
                             raise ValueError("Nonexistent upgrade in new game state", upgrade_name)
 
-    except ValueError:
-        raise
     except KeyError as ex:
         raise ValueError("Missing key", ex.args)
     except AttributeError as ex:
@@ -408,9 +402,10 @@ class GameInstance(object):
         """Add an amount of a resource to the state"""
         if resource_name not in self.resources:
             self.resources[resource_name] = Dicted(owned=0.0, maximum=self.model.resources[resource_name].maximum)
-        self.resources[resource_name].owned = max(
+        cap = self.resources[resource_name].maximum
+        self.resources[resource_name].owned = min(
             self.resources[resource_name].owned + amount,
-            self.resources[resource_name].maximum or float('inf')
+            float('inf') if cap is None else cap
         )
 
     def acquire_storage(self, resource_name, storage):
