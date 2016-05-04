@@ -2,6 +2,52 @@
 from collections import OrderedDict
 
 
+"""
+Provides modular incremental game model functionality.
+
+validate_game_model(json_data):
+    Validate a game model information blob.
+    This should only need to be called the first time a game model json description is stored
+    to make sure it is ok.
+
+GameModel(json_data):
+    Describes a game model.
+
+    new_game:
+        Attribute containing the starting game-state value for new games
+        played with this model.
+    load_game_instance(instance_data, instance_time):
+        Returns a new GameInstance object that can perform actions on a game instance being
+        played with this game model. Warranty does not cover giving instances that belong to
+        another game.
+
+GameInstance:
+    Calculates the state of a game being played. Get this from GameModel.load_game_instance()
+
+    get_current_state(current_time):
+        Fast forward this game instance from the time it was loaded with to the given current
+        time. Returns two values in a tuple: a new game instance json data dict that can be stored
+        in the database for the state at the current time, and another json data dict of
+        information to send to the javascript client.
+
+    purchase_building(current_time, building_name, number_purchased):
+        Like get_current_state, but also attempts to purchase some buildings at the current
+        time.
+
+    purchase_upgrade(current_time, upgrade_name):
+        Again like get_current_state, but also attempts to purchase an upgrade at the current time.
+
+
+    ~~~ Other methods that probably aren't needed outside this module: ~~~
+
+    save_state_json():
+        This makes the save state data object that the main three methods return
+
+    client_state_json():
+        Likewise for the client info object
+"""
+
+
 class Dicted(object):
     """Basic python object that we can hang easy attributes off of.
     This should be much easier than constantly referencing dictionaries."""
@@ -10,10 +56,21 @@ class Dicted(object):
             setattr(self, key, value)
 
 
-def validate_game_model(data):
-
+def validate_game_model(json_data):
+    """Validate a game model data wad and return the GameModel object if the game model is OK,
+    or raise a ValueError if there is a problem with the game model (some descriptive
+    information should be in the .args of the error)."""
     try:
-        model = GameModel(data)
+        if not isinstance(json_data, dict):
+            raise ValueError("Game model must be a json object with keys and values")
+
+        difference = set(json_data).symmetric_difference(
+            {'name', 'description', 'resources', 'buildings', 'upgrades'}
+        )
+        if difference:
+            raise ValueError("Missing or extra keys in game model description", difference)
+
+        model = GameModel(json_data)
 
         # noinspection PyShadowingNames
         def validate_resource_amounts(cost_data):
@@ -41,11 +98,11 @@ def validate_game_model(data):
                     if upgrade_name not in model.upgrades:
                         raise ValueError("Unlock references nonexistent upgrade", upgrade_name)
 
-        if len(data['resources']) != len(model.resources):
+        if len(json_data['resources']) != len(model.resources):
             raise ValueError("Two resources share the same name")
-        if len(data['buildings']) != len(model.buildings):
+        if len(json_data['buildings']) != len(model.buildings):
             raise ValueError("Two buildings share the same name")
-        if len(data['upgrades']) != len(model.upgrades):
+        if len(json_data['upgrades']) != len(model.upgrades):
             raise ValueError("Two upgrades share the same name")
 
         for resource in model.resources.values():
@@ -128,22 +185,23 @@ def validate_game_model(data):
     except AttributeError as ex:
         raise ValueError("Wrong type of value somewhere", ex.args)
 
+    return model
+
 
 class GameModel(object):
-    def __init__(self, data):
+    def __init__(self, json_data):
         """
         Load the game from game model information.
 
         May raise a ValueError if the model does not validate.
         """
-        data = data.copy()  # don't mutate original passed in data
         # game info
-        self.name = data.pop('name')
-        self.description = data.pop('description')
+        self.name = json_data['name']
+        self.description = json_data['description']
 
         # resources
         self.resources = OrderedDict()
-        for resource in data.pop('resources'):
+        for resource in json_data['resources']:
             resource = Dicted(
                 name=self.resources['name'],
                 description=resource.get('description', ""),
@@ -153,7 +211,7 @@ class GameModel(object):
 
         # buildings
         self.buildings = OrderedDict()
-        for building in data.pop('buildings'):
+        for building in json_data['buildings']:
             building = Dicted(
                 name=building['name'],
                 description=building.get('description', ""),
@@ -167,7 +225,7 @@ class GameModel(object):
 
         # upgrades
         self.upgrades = OrderedDict()
-        for upgrade in data.pop('upgrades'):
+        for upgrade in json_data['upgrades']:
             upgrade = Dicted(
                 name=upgrade['name'],
                 description=upgrade.get('description', ""),
@@ -178,10 +236,7 @@ class GameModel(object):
             self.upgrades[upgrade.name] = upgrade
 
         # new game game-state
-        self.new_game = data.pop('new_game')
-
-        if data:
-            raise ValueError("Unknown keys in game model data", data)
+        self.new_game = json_data['new_game']
 
     def load_game_instance(self, game_instance, game_instance_time):
         return GameInstance(self, game_instance, game_instance_time)
@@ -221,8 +276,12 @@ class GameInstance(object):
         buildings if possible, and return the (modified game state, and data to pass to the client) in a tuple
         """
         self.fast_forward(current_time)
-        if self.pay_cost(self.cost_of_building(building_name, number_to_buy=number_purchased)):
+        if (
+            building_name in self.model.buildings and
+            self.pay_cost(self.cost_of_building(building_name, number_to_buy=number_purchased))
+        ):
             self.acquire_building(building_name, number_purchased)
+            self.calculate_values()
         return self.save_state_json(), self.client_state_json()
 
     def purchase_upgrade(self, current_time, upgrade_name):
@@ -231,8 +290,12 @@ class GameInstance(object):
         upgrade if possible, and return the (modified game state, and data to pass to the client) in a tuple
         """
         self.fast_forward(current_time)
-        if self.pay_cost(self.model.upgrades[upgrade_name].cost):
+        if (
+            upgrade_name in self.model.buildings and
+            self.pay_cost(self.model.upgrades[upgrade_name].cost)
+        ):
             self.upgrades.add(upgrade_name)
+            self.calculate_values()
         return self.save_state_json(), self.client_state_json()
 
     def save_state_json(self):
