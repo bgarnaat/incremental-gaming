@@ -36,18 +36,33 @@ class MainView(View):
             db_instance.save()
             return render(request, self.template_name, {'game': front_end_json})
         else:
-            start_vals = game_model_data['new_game']
-            return render(request, self.template_name, {'game': instance, 'vals': start_vals})
+            # TODO: Render A New Game.
+            pass
 
     def post(self, request):
-        #import pdb; pdb.set_trace()
+        # Set up the current game instance
+        current_time = datetime.datetime.now()
+        current_game = Clicker_Game.objects.all()[0]
+        game_model_data = current_game.game_data
+        game_model = gm.GameModel(game_model_data)
+        db_instance = Game_Instance.objects.get(user=request.user,
+                                                game=current_game)
+        game_instance = game_model.load_game_instance(db_instance.data,
+                                                      db_instance.modified)
+
         if 'building' in request.POST:
-            pass  # purchase_building
+            building_name = request.POST.get('building_name')
+            number_purchased = request.POST.get('number_purchased')
+            db_json, front_end_json = game_instance.purchase_building(
+                current_time, building_name, number_purchased)
         elif 'upgrade' in request.POST:
-            pass  # purchase_upgrade
+            upgrade_name = request.POST.get('upgrade_name')
+            db_json, front_end_json = game_instance.purchase_upgrade(
+                current_time, upgrade_name)
         elif 'clicker' in request.POST:
-            game_rules = Clicker_Game.objects.all()[0].game_data
-            game_instance = Game_Instance.objects.get(user=request.user)
-            game_instance.data['clicks'] += game_rules['clicked']
-            game_instance.save()
-            return JsonResponse({'vals': game_instance.data})
+            pass
+        # Save new info to the database, return the new values to the front end
+        db_instance.data = db_json
+        db_instance.modified = current_time
+        db_instance.save()
+        return JsonResponse(front_end_json)
