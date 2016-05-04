@@ -57,7 +57,7 @@ class Dicted(object):
             setattr(self, key, value)
 
     def __repr__(self):
-        return "Dicted(**{})".format(self.__dict__)
+        return "Dicted(**{0})".format(self.__dict__)
 
 
 def validate_game_model(json_data):
@@ -79,10 +79,10 @@ def validate_game_model(json_data):
         # noinspection PyShadowingNames
         def validate_resource_amounts(cost_data):
             if not isinstance(cost_data, dict):
-                raise ValueError("Cost data must be a json object")
+                raise ValueError("Resource amounts must be a json object")
             for resource_name, amount in cost_data.items():
                 if resource_name not in model.resources:
-                    raise ValueError("Nonexistent resource specified", resource_name)
+                    raise ValueError("Resource amounts specify nonexistent resource", resource_name)
                 if not isinstance(amount, (int, float)):
                     raise ValueError("Non-numeric resource amount", resource_name, amount)
 
@@ -133,7 +133,7 @@ def validate_game_model(json_data):
             validate_resource_amounts(building.income)
             validate_resource_amounts(building.storage)
             for resource_name in building.storage:
-                if building.resources[resource_name].maximum is None:
+                if model.resources[resource_name].maximum is None:
                     raise ValueError("Building has storage for an unlimited resource", building.name, resource_name)
 
         for upgrade in model.upgrades.values():
@@ -188,7 +188,7 @@ def validate_game_model(json_data):
                             raise ValueError("Nonexistent upgrade in new game state", upgrade_name)
 
     except KeyError as ex:
-        raise ValueError("Missing key", ex.args)
+        raise ValueError("Missing key: {0}".format(ex.args[0]))
     except AttributeError as ex:
         raise ValueError("Wrong type of value somewhere", ex.args)
 
