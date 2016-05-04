@@ -74,6 +74,12 @@ def validate_game_model(json_data):
         if difference:
             raise ValueError("Missing or extra keys in game model description", difference)
 
+        if not all(
+            isinstance(json_data[x], list)
+            for x in ('resources', 'buildings', 'upgrades')
+        ):
+            raise ValueError("Resources, buildings, and upgrades in game model must all be lists")
+
         model = GameModel(json_data)
 
         # noinspection PyShadowingNames
@@ -126,10 +132,16 @@ def validate_game_model(json_data):
         if len(json_data['upgrades']) != len(model.upgrades):
             raise ValueError("Two upgrades share the same name")
 
+        #
+        # RESOURCES
+        #
         for resource in model.resources.values():
             if not isinstance(resource.maximum, (int, float, type(None))):
                 raise ValueError("A resource has a non-numeric maximum")
 
+        #
+        # BUILDINGS
+        #
         for building in model.buildings.values():
             validate_unlock(building.unlock)
             validate_resource_amounts(building.cost)
@@ -141,6 +153,9 @@ def validate_game_model(json_data):
                 if model.resources[resource_name].maximum is None:
                     raise ValueError("Building has storage for an unlimited resource", building.name, resource_name)
 
+        #
+        # UPGRADES
+        #
         for upgrade in model.upgrades.values():
             validate_unlock(upgrade.unlock)
             validate_resource_amounts(upgrade.cost)
@@ -171,30 +186,37 @@ def validate_game_model(json_data):
                             )
                         validate_modifier(income_modifier)
 
-            for key in model.new_game:
-                if key not in ('resources', 'buildings', 'upgrades'):
-                    raise ValueError("Invalid key in new game state", key)
-                if 'resources' in model.new_game:
-                    validate_resource_amounts(model.new_game['resources'])
-                if 'buildings' in model.new_game:
-                    for building_name, number in model.new_game['buildings'].items():
-                        if building_name not in model.buildings:
-                            raise ValueError("Nonexistent building in new game state", building_name)
-                        if not isinstance(number, (int, float)):
-                            raise ValueError(
-                                "Non-numeric number of buildings in new game state",
-                                building_name, number
-                            )
-                if 'upgrades' in model.new_game:
-                    if not isinstance(model.new_game['upgrades'], list):
-                        raise ValueError("Upgrades value in new game state is not a list")
-                    for upgrade_name in model.new_game['upgrades']:
-                        if upgrade_name not in model.upgrades:
-                            raise ValueError("Nonexistent upgrade in new game state", upgrade_name)
+        #
+        # NEW GAME STATE
+        #
+        if not isinstance(model.new_game, dict):
+            raise ValueError("New game state must be a json object with keys and values")
+        for key in model.new_game:
+            if key not in ('resources', 'buildings', 'upgrades'):
+                raise ValueError("Invalid key in new game state", key)
+            if 'resources' in model.new_game:
+                validate_resource_amounts(model.new_game['resources'])
+            if 'buildings' in model.new_game:
+                if not isinstance(model.new_game['buildings'], dict):
+                    raise ValueError("New game building counts must be a json object with keys and values")
+                for building_name, number in model.new_game['buildings'].items():
+                    if building_name not in model.buildings:
+                        raise ValueError("Nonexistent building in new game state", building_name)
+                    if not isinstance(number, (int, float)):
+                        raise ValueError(
+                            "Non-numeric number of buildings in new game state",
+                            building_name, number
+                        )
+            if 'upgrades' in model.new_game:
+                if not isinstance(model.new_game['upgrades'], list):
+                    raise ValueError("Upgrades value in new game state is not a list")
+                for upgrade_name in model.new_game['upgrades']:
+                    if upgrade_name not in model.upgrades:
+                        raise ValueError("Nonexistent upgrade in new game state", upgrade_name)
 
     except KeyError as ex:
         raise ValueError("Missing key: {0}".format(ex.args[0]))
-    except AttributeError as ex:
+    except (TypeError, AttributeError) as ex:
         raise ValueError("Wrong type of value somewhere", ex.args)
 
     return model
