@@ -16,6 +16,7 @@ GameModel(json_data):
     new_game:
         Attribute containing the starting game-state value for new games
         played with this model.
+        
     load_game_instance(instance_data, instance_time):
         Returns a new GameInstance object that can perform actions on a game instance being
         played with this game model. Warranty does not cover giving instances that belong to
