@@ -56,6 +56,9 @@ class Dicted(object):
         for key, value in kwargs.items():
             setattr(self, key, value)
 
+    def __repr__(self):
+        return "Dicted(**{})".format(self.__dict__)
+
 
 def validate_game_model(json_data):
     """Validate a game model data wad and return the GameModel object if the game model is OK,
@@ -258,7 +261,7 @@ def seconds_to_fast_forward(time):
 
     Accepts a timedelta and returns a float.
     """
-    return time.total_second()  # todo: long idle times should result in less effective time passed
+    return time.total_seconds()  # todo: long idle times should result in less effective time passed
 
 
 class GameInstance(object):
@@ -267,7 +270,7 @@ class GameInstance(object):
         self.time = instance_time
         self.resources = instance_data.get('resources') or {}
         self.buildings = instance_data.get('buildings') or {}
-        self.upgrades = set(instance_data.get('upgrades')) or set()
+        self.upgrades = set(instance_data.get('upgrades', ()))
         # convert to python objects
         self.resources = {name: Dicted(owned=count) for name, count in self.resources.items()}
         self.buildings = {name: Dicted(owned=count) for name, count in self.buildings.items()}
@@ -301,7 +304,7 @@ class GameInstance(object):
         """
         self.fast_forward(current_time)
         if (
-            upgrade_name in self.model.buildings and
+            upgrade_name in self.model.upgrades and
             self.pay_cost(self.model.upgrades[upgrade_name].cost)
         ):
             self.upgrades.add(upgrade_name)
@@ -348,6 +351,7 @@ class GameInstance(object):
             income = owned and self.buildings[building.name].income or building.income
             if owned or self.requirement_is_met(building.unlock):
                 result['buildings'].append({
+                    'name': building.name,
                     'description': building.description,
                     'owned': owned,
                     'cost': self.cost_of_building(building.name, 1),
@@ -370,9 +374,10 @@ class GameInstance(object):
         # calculate resource incomes per building type
         for name, building in self.buildings.items():
             # incomes are per resource
-            building.income = self.model.buildings[name].incomes.copy()
+            building.income = self.model.buildings[name].income.copy()
             building.multiplier = {resource: 1.0 for resource in building.income}
             building.cost = self.model.buildings[name].cost.copy()
+            building.storage = self.model.buildings[name].storage.copy()
 
         # calculate upgrades
         for upgrade in self.upgrades:
@@ -403,7 +408,10 @@ class GameInstance(object):
         """Add an amount of a resource to the state"""
         if resource_name not in self.resources:
             self.resources[resource_name] = Dicted(owned=0.0, maximum=self.model.resources[resource_name].maximum)
-        self.resources[resource_name].owned += amount
+        self.resources[resource_name].owned = max(
+            self.resources[resource_name].owned + amount,
+            self.resources[resource_name].maximum or float('inf')
+        )
 
     def acquire_storage(self, resource_name, storage):
         """Add an amount of storage for a resource to the state"""
@@ -440,7 +448,7 @@ class GameInstance(object):
         self.calculate_values()
         seconds = seconds_to_fast_forward(current_time - self.time)
         for resource in self.resources.values():
-            resource.owned = min(resource.owned + resource.income * seconds, resource.maximum)
+            resource.owned = min(resource.owned + resource.income * seconds, resource.maximum or float('inf'))
         self.time = current_time
 
     def requirement_is_met(self, unlock):
@@ -451,7 +459,7 @@ class GameInstance(object):
         if 'buildings' in unlock:
             if not all(
                 building in self.buildings and self.buildings[building].owned >= count
-                for building, count in unlock['buildings']
+                for building, count in unlock['buildings'].items()
             ):
                 return False
         if 'upgrades' in unlock:
@@ -464,9 +472,14 @@ class GameInstance(object):
 
     def cost_of_building(self, building_name, number_to_buy=1):
         """Calculate the cost of purchasing a certain number of a building"""
-        if building_name not in self.buildings:
-            raise KeyError(building_name)
-        building = self.buildings[building_name]
+        # get or create a building
+        building = (
+            self.buildings.get(building_name) or
+            Dicted(
+                owned=0,
+                cost=self.model.buildings[building_name].cost.copy()
+            )
+        )
         result = {resource: 0.0 for resource in building.cost}
         for resource, amount in building.cost.items():
             for n in range(building.owned, building.owned + number_to_buy):
