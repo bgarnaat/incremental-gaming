@@ -2,7 +2,8 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.generic import View
 from clicker_game.models import Game_Instance, Clicker_Game
-from clicker_game.game_model import GameModel
+import clicker_game.game_model as gm
+import datetime
 
 # Create your views here.
 
@@ -19,13 +20,21 @@ class MainView(View):
     template_name = 'base.html'
 
     def get(self, request):
-        game_model_data = Clicker_Game.objects.all()[0].game_data  # Get The Game Rules the User Is Playing
-        #model = GameModel(game_model_data)
-        #instance = model.load_game_instance()
-        instance = game_model_data
+        current_time = datetime.datetime.now()
+        current_game = Clicker_Game.objects.all()[0]
+        game_model_data = current_game.game_data
+        game_model = gm.GameModel(game_model_data)
         if request.user.is_authenticated():
-            cur_vals = Game_Instance.objects.get(user=request.user).data
-            return render(request, self.template_name, {'game': instance, 'vals': cur_vals})
+            db_instance = Game_Instance.objects.get(user=request.user,
+                                                    game=current_game)
+            game_instance = game_model.load_game_instance(db_instance.data,
+                                                          db_instance.modified)
+            db_json, front_end_json = game_instance.get_current_state(
+                current_time)
+            db_instance.data = db_json
+            db_instance.modified = current_time
+            db_instance.save()
+            return render(request, self.template_name, {'game': front_end_json})
         else:
             start_vals = game_model_data['new_game']
             return render(request, self.template_name, {'game': instance, 'vals': start_vals})

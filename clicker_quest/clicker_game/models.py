@@ -28,5 +28,5 @@ class Game_Instance(models.Model):
                              related_name='games_playing')
     game = models.ForeignKey(Clicker_Game, related_name='running_games')
     data = JSONField()
-    modified = models.DateTimeField(auto_now=True)
+    modified = models.DateTimeField(auto_now_add=True)
     created = models.DateTimeField(auto_now_add=True)
