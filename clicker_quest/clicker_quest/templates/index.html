@@ -1,0 +1,94 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Clicker Quest!</title>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.1.1/normalize.min.css">
+    <!-- <link rel="stylesheet" type="text/css" href="normalize.css"> -->
+    <link rel="stylesheet" type="text/css" href="{% static 'imager/base.css' %}">
+  </head>
+  <body>
+    <header>
+      <hgroup>
+        <h1>Clicker Quest</h1>
+        <!-- <h3>|-o-|  <-o->  |-o-|</h3> -->
+        <!-- <h3 class="green">&nbsp&nbsp&nbsp \\ &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp \\</h3> -->
+      </hgroup>
+      <nav>
+        <ul>
+          {% if user.is_authenticated %}
+          <li class="nav_item"><a href="/logout">Logout</a></li>
+          {% else %}
+          <li class="nav_item"><a href="/accounts/login">Login</a></li>
+          <li class="nav_item"><a href="/accounts/register">Register</a></li>
+          {% endif %}
+          <li class="nav_item"><a href="#">LeaderBoard</a></li>
+        </ul>
+      </nav>
+    </header>
+    <div id="header_offset"></div>
+    <div class="clearfix"></div>
+    <main>
+      <section id="resources">
+        <ul>
+          {% for (resource, data) in resources %}
+          <li class="resource">
+            <span class="{{ data.color }}">{{ resource }}:</span> <span id="{{ resource }}_current">data.owned</span> / {{ data.maximum }} ({{data.income}}/s)
+          </li>
+          <div class="popup">
+            <div class="description">{{ data.description }}<div>
+          </div>
+          {% endfor %}
+        </ul>
+      </section>
+      <section id="buildings">
+        <ul>
+          {% for (building, data) in buildings %}
+          <li class="building {% if data.owned} owned {% endif }" id="{{ building }}">
+            {{ building }} {% if data.owned %} ({{ owned }}) {% endif %}
+            <div class="popup_L">
+              <div class="description">{{ data.description }}<div>
+              <ul>
+                {% for (resource, amount) in cost %}
+                <li>{{ resource}}: {{ amount }}</li>
+                {% endfor %}
+              </ul>
+              <ul>
+                {% for (resource, rate) in income %}
+                <li>{{ resource}}: {{ rate }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+      <section id="upgrades">
+        <ul>
+          {% for (upgrade, data) in upgrades %}
+          <li class="upgrade {% if data.owned %} owned {% endif %}" id="{{ upgrade }}">
+            {{ upgrade }} {% if data.owned %} (owned) {% endif %}
+            <div class="popup_L">
+              <div class="description">{{data.description}}</div>
+              <ul>
+                {% for (resource, amount) in cost %}
+                {{ resource }}: {{ amount }}
+                {% endfor %}
+              </ul>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+      <section id="leaderboard">
+        <ul>
+          <li class="leader">#1 - Kent Ross  -  Score</li>
+          <li class="leader">#2 - Kyle Richardson  -  Score</li>
+          <li class="leader">#3 - Ben Garnaat  -  Score</li>
+        </ul>
+      </section>
+    </main>
+    <footer>Clicker Quest.  Copyright (c) 2016 Copyright Holder All Rights Reserved.  Clicker Quest Co. Inc. LLC</footer>
+  </body>
+</html>
