@@ -91,7 +91,7 @@ def validate_game_model(json_data):
             if unlock is ():
                 return
             if not isinstance(unlock, dict):
-                raise ValueError("Unlock must be an object with keys and values")
+                raise ValueError("Unlock must be a json object with keys and values")
             if not all(x in ('buildings', 'upgrades') for x in unlock):
                 raise ValueError("Extra values in unlock", unlock)
             if 'buildings' in unlock:
@@ -99,7 +99,7 @@ def validate_game_model(json_data):
                     if building_name not in model.buildings:
                         raise ValueError("Unlock references nonexistent building", building_name)
                     if not isinstance(number, (int, float)):
-                        raise ValueError("Non-numeric required number of buildings in unlock", number)
+                        raise ValueError("Non-numeric number of required buildings in unlock", number)
             for upgrade_name in unlock.get('upgrades', ()):
                 if upgrade_name not in model.upgrades:
                     raise ValueError("Unlock references nonexistent upgrade", upgrade_name)
@@ -123,7 +123,7 @@ def validate_game_model(json_data):
 
         for resource in model.resources.values():
             if not isinstance(resource.maximum, (int, float, type(None))):
-                raise ValueError("A resource has a non-numerical maximum")
+                raise ValueError("A resource has a non-numeric maximum")
 
         for building in model.buildings.values():
             validate_unlock(building.unlock)
