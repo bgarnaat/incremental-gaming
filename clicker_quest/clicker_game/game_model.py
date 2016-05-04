@@ -16,7 +16,7 @@ GameModel(json_data):
     new_game:
         Attribute containing the starting game-state value for new games
         played with this model.
-        
+
     load_game_instance(instance_data, instance_time):
         Returns a new GameInstance object that can perform actions on a game instance being
         played with this game model. Warranty does not cover giving instances that belong to
@@ -66,7 +66,7 @@ def validate_game_model(json_data):
             raise ValueError("Game model must be a json object with keys and values")
 
         difference = set(json_data).symmetric_difference(
-            {'name', 'description', 'resources', 'buildings', 'upgrades'}
+            {'name', 'description', 'resources', 'buildings', 'upgrades', 'new_game'}
         )
         if difference:
             raise ValueError("Missing or extra keys in game model description", difference)
@@ -75,7 +75,7 @@ def validate_game_model(json_data):
 
         # noinspection PyShadowingNames
         def validate_resource_amounts(cost_data):
-            for resource_name, amount in cost_data.values():
+            for resource_name, amount in cost_data.items():
                 if resource_name not in model.resources:
                     raise ValueError("Nonexistent resource specified", resource_name)
                 if not isinstance(amount, (int, float)):
@@ -90,14 +90,25 @@ def validate_game_model(json_data):
             if not all(x in ('buildings', 'upgrades') for x in unlock):
                 raise ValueError("Extra values in unlock", unlock)
             if unlock:
-                for building_name, number in unlock['buildings']:
-                    if building_name not in model.buildings:
-                        raise ValueError("Unlock references nonexistent building", building_name)
-                    if not isinstance(number, (int, float)):
-                        raise ValueError("Non-numeric required number of buildings in unlock", number)
-                for upgrade_name in unlock['upgrades']:
+                if 'buildings' in unlock:
+                    for building_name, number in unlock['buildings'].items():
+                        if building_name not in model.buildings:
+                            raise ValueError("Unlock references nonexistent building", building_name)
+                        if not isinstance(number, (int, float)):
+                            raise ValueError("Non-numeric required number of buildings in unlock", number)
+                for upgrade_name in unlock.get('upgrades', ()):
                     if upgrade_name not in model.upgrades:
                         raise ValueError("Unlock references nonexistent upgrade", upgrade_name)
+
+        def validate_modifier(modifier):
+            """Validates modifier for a value (multipliers and so forth)"""
+            if not isinstance(modifier, dict):
+                raise ValueError("Modifier of a value must be a json object with keys and values")
+            for modify_type, value in modifier.items():
+                if modify_type not in ('multiplier',):
+                    raise ValueError("Unknown key in value modifier", key)
+                if not isinstance(value, (int, float)):
+                    raise ValueError("Non-numeric modifier value", key, value)
 
         if len(json_data['resources']) != len(model.resources):
             raise ValueError("Two resources share the same name")
@@ -124,7 +135,7 @@ def validate_game_model(json_data):
         for upgrade in model.upgrades.values():
             validate_unlock(upgrade.unlock)
             validate_resource_amounts(upgrade.cost)
-            for building_name, effects in upgrade().buildings:
+            for building_name, effects in upgrade.buildings.items():
                 if building_name not in model.buildings:
                     raise ValueError("Upgrade affects cost of nonexistent building", upgrade.name, building_name)
                 for effect_type in effects:
@@ -134,29 +145,27 @@ def validate_game_model(json_data):
                             upgrade.name, building_name, effect_type
                         )
                 if 'cost' in effects:
-                    for resource_name, multiplier in effects['cost']:
+                    for resource_name, cost_modifier in effects['cost']:
                         if resource_name not in model.resources:
                             raise ValueError(
                                 "Upgrade affects cost for nonexistent resource",
                                 upgrade.name, building_name, resource_name
                             )
-                        if not isinstance(multiplier, (int, float)):
+                        if not isinstance(cost_modifier, dict):
                             raise ValueError(
-                                "Non-numeric building cost multiplier in an upgrade",
-                                upgrade.name, building_name, resource_name, multiplier
+                                "Building cost modifier must be a json object with keys and values",
+                                upgrade.name, building_name, resource_name, cost_modifier
                             )
+                        validate_modifier(cost_modifier)
+
                 if 'income' in effects:
-                    for resource_name, income in effects['cost']:
+                    for resource_name, income_modifier in effects['income'].items():
                         if resource_name not in model.resources:
                             raise ValueError(
-                                "Upgrade affects cost for nonexistent resource",
+                                "Upgrade affects income for nonexistent resource",
                                 upgrade.name, building_name, resource_name
                             )
-                        if not isinstance(income, (int, float)):
-                            raise ValueError(
-                                "Non-numeric building income multiplier in an upgrade",
-                                upgrade.name, building_name, resource_name, income
-                            )
+                        validate_modifier(income_modifier)
 
             for key in model.new_game:
                 if key not in ('resources', 'buildings', 'upgrades'):
@@ -204,7 +213,7 @@ class GameModel(object):
         self.resources = OrderedDict()
         for resource in json_data['resources']:
             resource = Dicted(
-                name=self.resources['name'],
+                name=resource['name'],
                 description=resource.get('description', ""),
                 maximum=resource.get('maximum'),
             )
@@ -369,14 +378,14 @@ class GameInstance(object):
         for upgrade in self.upgrades:
             # effects on buildings
             for building, effects in self.model.upgrades[upgrade].buildings:
-                # cost multipliers
+                # cost modifiers
                 if 'cost' in effects:
-                    for resource, cost_multiplier in effects['cost']:
-                        building.cost[resource] *= cost_multiplier
-                # income multipliers
+                    for resource, cost_modifier in effects['cost']:
+                        building.cost[resource] *= cost_modifier['multiplier']
+                # income modifiers
                 if 'income' in effects:
-                    for resource, income_multiplier in effects['income']:
-                        building.income[resource] *= income_multiplier
+                    for resource, income_modifier in effects['income']:
+                        building.income[resource] *= income_modifier['multiplier']
 
         # reset resources maximums and incomes
         for name, resource in self.resources.items():
