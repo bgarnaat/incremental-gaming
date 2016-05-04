@@ -28,8 +28,24 @@ class GameModelValidationTest(TestCase):
 
     def test_non_dict_model(self):
         with self.assertRaises(ValueError):
-            validate_game_model(["not a dict"])
-    
+            validate_game_model("not a dict")
+
+    def test_non_list_resources(self):
+        self.game['resources'] = "not a list"
+        self.dont_validate("must all be lists")
+
+    def test_non_list_buildings(self):
+        self.game['buildings'] = "not a list"
+        self.dont_validate("must all be lists")
+
+    def test_non_list_upgrades(self):
+        self.game['upgrades'] = "not a list"
+        self.dont_validate("must all be lists")
+
+    def test_non_dict_new_game(self):
+        self.game['new_game'] = "not a dict"
+        self.dont_validate("New game state must be a json object")
+
     def test_missing_keys_model(self):
         self.game.pop('upgrades')
         self.dont_validate("Missing or extra keys")
@@ -531,24 +547,137 @@ class GameModelValidationTest(TestCase):
         self.dont_validate("Upgrade affects income for nonexistent resource")
 
     def test_valid_upgrades(self):
-        pass  # todo
-
-    def test_new_game_non_dict(self):
-        pass  # todo
+        self.game['resources'].append(
+            {'name': "minerals"}
+        )
+        self.game['buildings'].append(
+            {
+                'name': "building",
+                'cost': {},
+                'cost_factor': 2,
+                'income': {
+                    "minerals": 1,
+                }
+            }
+        )
+        self.game['upgrades'].extend([
+            {
+                'name': "abc",
+                'cost': {"minerals": 1},
+                'unlock': {
+                    'buildings': {"building": 1},
+                },
+                'buildings': {
+                    "building": {
+                        'cost': {
+                            "minerals": {'multiplier': .5},
+                        },
+                        'income': {
+                            "minerals": {'multiplier': 2},
+                        },
+                    },
+                },
+            },
+            {
+                'name': "def",
+                'cost': {"minerals": 100},
+                'unlock': {
+                    'buildings': {"building": 10},
+                    'upgrades': ["abc"],
+                },
+                'buildings': {
+                    "building": {
+                        'income': {
+                            "minerals": {'multiplier': 2},
+                        },
+                    },
+                },
+            },
+            {
+                'name': "ghi",
+                'cost': {"minerals": 10000},
+                'unlock': {
+                    'buildings': {"building": 100},
+                    'upgrades': ["def"],
+                },
+                'buildings': {
+                    "building": {
+                        'cost': {
+                            "minerals": {'multiplier': .5},
+                        },
+                    },
+                },
+            },
+        ])
+        self.validate_ok()
 
     def test_new_game_invalid_resources(self):
-        pass  # todo
+        self.game['new_game'] = {
+            'resources': "not a dict"
+        }
+        self.dont_validate("Resource amounts must be a json object")
 
     def test_new_game_nonexistent_building(self):
-        pass  # todo
+        self.game['new_game'] = {
+            'buildings': {"nonexistent": 1}
+        }
+        self.dont_validate("Nonexistent building in new game state")
 
     def test_new_game_non_numeric_building_count(self):
-        pass  # todo
+        self.game['buildings'].append(
+            {'name': "abc", 'cost': {}, 'cost_factor': 2}
+        )
+        self.game['new_game'] = {
+            'buildings': {
+                "abc": "not a number"
+            }
+        }
+        self.dont_validate("Non-numeric number of buildings in new game")
 
     def test_new_game_nonexistent_upgrade(self):
-        pass  # todo
+        self.game['new_game'] = {
+            'upgrades': ["nonexistent"]
+        }
+        self.dont_validate("Nonexistent upgrade in new game")
 
     def test_valid_new_game(self):
-        pass  # todo
+        self.game['resources'].append(
+            {'name': "minerals"}
+        )
+        self.game['buildings'].append(
+            {
+                'name': "building",
+                'cost': {},
+                'cost_factor': 2,
+                'income': {
+                    "minerals": 1,
+                }
+            }
+        )
+        self.game['upgrades'].extend([
+            {
+                'name': "abc",
+                'cost': {"minerals": 1},
+                'unlock': {
+                    'buildings': {"building": 1},
+                },
+                'buildings': {
+                    "building": {
+                        'cost': {
+                            "minerals": {'multiplier': .5},
+                        },
+                        'income': {
+                            "minerals": {'multiplier': 2},
+                        },
+                    },
+                },
+            },
+        ])
+        self.game['new_game'] = {
+            'resources': {"minerals": 1},
+            'buildings': {"building": 1},
+            'upgrades': ["abc"],
+        }
+        self.validate_ok()
 
     # todo calculation tests
