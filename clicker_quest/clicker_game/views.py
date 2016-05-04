@@ -20,6 +20,7 @@ class MainView(View):
     template_name = 'base.html'
 
     def get(self, request):
+        import pdb; pdb.set_trace()
         current_time = datetime.datetime.now()
         current_game = Clicker_Game.objects.all()[0]
         game_model_data = current_game.game_data

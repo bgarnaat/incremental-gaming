@@ -64,6 +64,7 @@ class MainViewTest(TestCase):
         self.user = UserFactory.create()
         self.game_json = {
             'name': 'Test Game',
+            'description': 'Click thing to make quest',
             'resources': [{
                 'name': 'quests',
                 'description': 'The All Important Quest',
@@ -122,4 +123,5 @@ class MainViewTest(TestCase):
 
     def test_get_request(self):
         c = Client()
-        self.force_login(self.user)
+        c.force_login(self.user)
+        response = c.get('/test/')
