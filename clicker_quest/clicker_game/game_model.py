@@ -95,14 +95,19 @@ def validate_game_model(json_data):
             if not all(x in ('buildings', 'upgrades') for x in unlock):
                 raise ValueError("Extra values in unlock", unlock)
             if 'buildings' in unlock:
+                if not isinstance(unlock['buildings'], dict):
+                    raise ValueError("Unlock's buildings field must be a json object with keys and values")
                 for building_name, number in unlock['buildings'].items():
                     if building_name not in model.buildings:
                         raise ValueError("Unlock references nonexistent building", building_name)
                     if not isinstance(number, (int, float)):
                         raise ValueError("Non-numeric number of required buildings in unlock", number)
-            for upgrade_name in unlock.get('upgrades', ()):
-                if upgrade_name not in model.upgrades:
-                    raise ValueError("Unlock references nonexistent upgrade", upgrade_name)
+            if 'upgrades' in unlock:
+                if not isinstance(unlock['upgrades'], list):
+                    raise ValueError("Unlock's upgrades field must be a list")
+                for upgrade_name in unlock['upgrades']:
+                    if upgrade_name not in model.upgrades:
+                        raise ValueError("Unlock references nonexistent upgrade", upgrade_name)
 
         def validate_modifier(modifier):
             """Validates modifier for a value (multipliers and so forth)"""
@@ -110,9 +115,9 @@ def validate_game_model(json_data):
                 raise ValueError("Modifier of a value must be a json object with keys and values")
             for modify_type, value in modifier.items():
                 if modify_type not in ('multiplier',):
-                    raise ValueError("Unknown key in value modifier", key)
+                    raise ValueError("Unknown key in value modifier", modify_type)
                 if not isinstance(value, (int, float)):
-                    raise ValueError("Non-numeric modifier value", key, value)
+                    raise ValueError("Non-numeric modifier value", modify_type, value)
 
         if len(json_data['resources']) != len(model.resources):
             raise ValueError("Two resources share the same name")
@@ -149,7 +154,7 @@ def validate_game_model(json_data):
                             upgrade.name, building_name, effect_type
                         )
                 if 'cost' in effects:
-                    for resource_name, cost_modifier in effects['cost']:
+                    for resource_name, cost_modifier in effects['cost'].items():
                         if resource_name not in model.resources:
                             raise ValueError(
                                 "Upgrade affects cost for nonexistent resource",
@@ -330,7 +335,7 @@ class GameInstance(object):
         if self.resources:
             for resource in self.model.resources.values():
                 owned = self.resources.get(resource.name)
-                if owned and (owned.owned or owned.income):
+                if owned and (owned.owned or owned.income) and (not owned.maximum == 0):
                     result['resources'].append({
                         'name': resource.name,
                         'description': resource.description,
