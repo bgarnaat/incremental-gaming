@@ -59,8 +59,6 @@ class MainView(View):
             upgrade_name = request.POST.get('upgrade_name')
             db_json, front_end_json = game_instance.purchase_upgrade(
                 current_time, upgrade_name)
-        elif 'clicker' in request.POST:
-            pass
         # Save new info to the database, return the new values to the front end
         db_instance.data = db_json
         db_instance.modified = current_time

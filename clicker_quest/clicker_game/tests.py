@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.conf import settings
 from clicker_game.models import Clicker_Game, Game_Instance
 import factory
@@ -54,6 +54,72 @@ class GameInstanceTest(TestCase):
         self.game1.save()
         self.assertEqual(self.game1.user, self.user)
         self.assertEqual(self.game1.game, self.game)
-        self.assertEqual(self.game1.data['clicks'], 34)
+        self.assertEqual(self.game1.data['clicks'], 34) 
         self.assertIsInstance(self.game1.modified, datetime.datetime)
         self.assertIsInstance(self.game1.created, datetime.datetime)
+
+
+class MainViewTest(TestCase):
+    def setUp(self):
+        self.user = UserFactory.create()
+        self.game_json = {
+            'name': 'Test Game',
+            'resources': [{
+                'name': 'quests',
+                'description': 'The All Important Quest',
+                'maximum': 999
+            }],
+            'buildings': [{
+                'name': 'Quest Maker',
+                'description': 'Makes Quests',
+                'unlock': {},
+                'cost': {
+                    'quests': 10
+                },
+                'cost_factor': .5,
+                'income': {'quests': 1},
+                'storage': {}
+            }],
+            'upgrades': [{
+                'name': 'fleagal power',
+                'description': 'Harness The Power of <0>',
+                'unlock': {
+                    'buildings': {
+                        'Quest Maker': 5
+                    }
+                },
+                'cost': {'quests': 200},
+                'buildings': {
+                    'Quest Maker': {
+                        'cost': {
+                            'multiplier': 2
+                        },
+                        'income': {
+                            'quests': {'multiplier': 2}
+                        }
+                    }
+                }
+            }],
+            'new_game': {
+                'resources': {
+                    'quests': 50
+                },
+                'buildings': {},
+                'upgrades': []
+            }
+        }
+        self.db_json = {
+                'resources': {
+                    'quests': 316
+                },
+                'buildings': {'Quest Maker': 2},
+                'upgrades': []
+            }
+        self.game_rules = Clicker_Game(owner=self.user, game_data=self.game_json, name='Quest Clicker')
+        self.game_rules.save()
+        self.game_instance = Game_Instance(user=self.user, game=self.game_rules, data=self.db_json)
+        self.game_instance.save()
+
+    def test_get_request(self):
+        c = Client()
+        self.force_login(self.user)
