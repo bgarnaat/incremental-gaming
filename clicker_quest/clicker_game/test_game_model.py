@@ -1,7 +1,7 @@
 # coding=utf-8
 from django.test import TestCase
 
-from clicker_game.game_model import GameModel, GameInstance, validate_game_model
+from clicker_game.game_model import validate_game_model
 
 
 class GameModelValidationTest(TestCase):
@@ -15,7 +15,7 @@ class GameModelValidationTest(TestCase):
             'new_game': {},
         }
 
-    def dont_validate(self, message):
+    def dont_validate(self, message, ):
         try:
             validate_game_model(self.game)
         except ValueError as ex:
@@ -40,15 +40,15 @@ class GameModelValidationTest(TestCase):
 
     def test_unnamed_resource(self):
         self.game['resources'].append({'maximum': 100})
-        self.dont_validate("Missing key")
+        self.dont_validate("Missing key: name")
 
     def test_unnamed_building(self):
         self.game['buildings'].append({'cost': {}, 'cost_factor': 2})
-        self.dont_validate("Missing key")
+        self.dont_validate("Missing key: name")
 
     def test_unnamed_upgrade(self):
         self.game['upgrades'].append({'cost': {}, 'buildings': {}})
-        self.dont_validate("Missing key")
+        self.dont_validate("Missing key: name")
     
     def test_overload_resources(self):
         entry = {'name': "abc"}
@@ -147,7 +147,7 @@ class GameModelValidationTest(TestCase):
 
     def test_good_unlock(self):
         self.game['buildings'].extend([
-            {
+            {  # with just buildings in unlock
                 'name': "abc",
                 'unlock': {
                     'buildings': {"abc": 1},
@@ -155,7 +155,7 @@ class GameModelValidationTest(TestCase):
                 'cost': {},
                 'cost_factor': 2,
             },
-            {
+            {  # with just upgrades
                 'name': "def",
                 'unlock': {
                     'upgrades': ["upgrade"],
@@ -163,7 +163,7 @@ class GameModelValidationTest(TestCase):
                 'cost': {},
                 'cost_factor': 2,
             },
-            {
+            {  # with both
                 'name': "ghi",
                 'unlock': {
                     'buildings': {"abc": 1},
@@ -174,7 +174,7 @@ class GameModelValidationTest(TestCase):
             },
         ])
         self.game['upgrades'].append(
-            {
+            {  # required upgrade
                 'name': "upgrade",
                 'cost': {},
             }
@@ -182,28 +182,101 @@ class GameModelValidationTest(TestCase):
         self.validate_ok()
 
     def test_building_without_cost(self):
-        pass  # todo
+        self.game['buildings'].append(
+            {
+                'name': "abc",
+                'cost_factor': 2
+            }
+        )
+        self.dont_validate("Missing key: cost")
 
     def test_building_with_non_dict_cost(self):
-        pass  # todo
+        self.game['buildings'].append(
+            {
+                'name': "abc",
+                'cost': ["not a dict"],
+                'cost_factor': 2,
+            }
+        )
+        self.dont_validate("must be a json object")
 
     def test_building_with_invalid_cost_resource(self):
-        pass  # todo
+        self.game['buildings'].append(
+            {
+                'name': "abc",
+                'cost': {"nonexistent": 1},
+                'cost_factor': 2,
+            }
+        )
+        self.dont_validate("nonexistent resource")
 
     def test_building_with_non_numeric_cost_amount(self):
-        pass  # todo
+        self.game['resources'].append(
+            {'name': 'minerals'}
+        )
+        self.game['buildings'].append(
+            {
+                'name': "abc",
+                'cost': {"minerals": "not a number"},
+                'cost_factor': 2,
+            }
+        )
+        self.dont_validate("Non-numeric resource")
 
     def test_building_with_non_numeric_cost_factor(self):
-        pass  # todo
+        self.game['buildings'].append(
+            {
+                'name': "abc",
+                'cost': {},
+                'cost_factor': "not a number",
+            }
+        )
+        self.dont_validate("Non-numeric cost factor")
 
     def test_building_with_invalid_income(self):
-        pass  # todo
+        self.game['resources'].append(
+            {'name': "a"}
+        )
+        self.game['buildings'].append(
+            {
+                'name': "abc",
+                'cost': {"a": 1},
+                'cost_factor': 2,
+                'income': {"a": 1, "b": 2},
+            }
+        )
+        self.dont_validate("nonexistent resource")
 
     def test_building_with_invalid_storage(self):
-        pass  # todo
+        self.game['resources'].append(
+            {
+                'name': "a",
+                'maximum': 100,
+            }
+        )
+        self.game['buildings'].append(
+            {
+                'name': "abc",
+                'cost': {"a": 1},
+                'cost_factor': 2,
+                'storage': "not a dict",
+            }
+        )
+        self.dont_validate("must be a json object")
 
     def test_building_with_storage_for_unlimited_resource(self):
-        pass  # todo
+        self.game['resources'].append(
+            {'name': "a"}
+        )
+        self.game['buildings'].append(
+            {
+                'name': "abc",
+                'cost': {"a": 1},
+                'cost_factor': 2,
+                'storage': {"a": 10},
+            }
+        )
+        self.dont_validate("storage for an unlimited resource")
 
     def test_upgrade_with_invalid_unlock(self):
         pass  # todo
