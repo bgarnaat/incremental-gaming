@@ -169,7 +169,25 @@ class MainViewTest(TestCase):
         self.game_instance = Game_Instance(user=self.user, game=self.game_rules, data=self.db_json)
         self.game_instance.save()
 
-    def test_get_request(self):
+    def test_get_request_html(self):
         c = Client()
         c.force_login(self.user)
         response = c.get('/test/')
+        self.assertTemplateUsed(response, 'index.html')
+        self.assertIsInstance(response.context['game'], dict)
+
+    def test_get_request_ajax(self):
+        c = Client()
+        c.force_login(self.user)
+        response = c.get('/test/', HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertTrue(response.json())
+
+    def test_post_building(self):
+        c = Client()
+        c.force_login(self.user)
+        response = c.post(
+            '/test/',
+            {'building': True, 'name': 'a building', 'number_purchased': 1},
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertTrue(response.json())
+        import pdb; pdb.set_trace()
