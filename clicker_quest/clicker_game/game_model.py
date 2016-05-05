@@ -347,9 +347,17 @@ class GameInstance(object):
         """Return the save state json object for this game state, boiled down to its minimum"""
         result = {}
         if self.resources:
-            result['resources'] = {name: resource.owned for name, resource in self.resources.items()}
+            result['resources'] = {
+                name: resource.owned
+                for name, resource in self.resources.items()
+                if resource.owned
+            }
         if self.buildings:
-            result['buildings'] = {name: building.owned for name, building in self.buildings.items()}
+            result['buildings'] = {
+                name: building.owned
+                for name, building in self.buildings.items()
+                if building.owned
+            }
         if self.upgrades:
             result['upgrades'] = list(self.upgrades)
         return result
