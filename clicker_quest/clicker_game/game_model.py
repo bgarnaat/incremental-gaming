@@ -392,6 +392,7 @@ class GameInstance(object):
         for upgrade in self.model.upgrades.values():
             if upgrade.name in self.upgrades or self.requirement_is_met(upgrade.unlock):
                 result['upgrades'].append({
+                    'name': upgrade.name,
                     'description': upgrade.description,
                     'owned': upgrade.name in self.upgrades,
                     'cost': upgrade.cost,
