@@ -8,7 +8,8 @@
     ['resource', 'building', 'upgrade'].foreach(function(ele) {
       templates[ele] = Handlebars.compile($('#' + ele + "_template").text());
     });
-    $.get({
+    $.ajax({
+      type: 'GET',
       url: '/test/',  // TODO update this url
       dataType: 'json',
     }).done(function(data) {
@@ -21,7 +22,8 @@
 
   $('section').on('click', 'li', function(){
     if (this.class === 'building' || this.class === 'upgrade') {
-      $.post({
+      $.ajax({
+        type: 'POST',
         url: '/test/',  // TODO update this url
         contentType: 'application/json',
         data: {
