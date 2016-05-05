@@ -62,6 +62,9 @@ class MainView(View):
             upgrade_name = request.POST.get('name')
             db_json, front_end_json = game_instance.purchase_upgrade(
                 current_time, upgrade_name)
+        else:
+            db_json, front_end_json = game_instance.get_current_state(
+                current_time)
         # Save new info to the database, return the new values to the front end
         db_instance.data = db_json
         db_instance.modified = current_time

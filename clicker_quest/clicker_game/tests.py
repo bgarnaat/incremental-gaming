@@ -190,4 +190,22 @@ class MainViewTest(TestCase):
             {'building': True, 'name': 'a building', 'number_purchased': 1},
             HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         self.assertTrue(response.json())
-        import pdb; pdb.set_trace()
+
+    def test_post_update(self):
+        c = Client()
+        c.force_login(self.user)
+        response = c.post(
+            '/test/',
+            {'upgrade': True, 'name': 'a upgrade'},
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertTrue(response.json())
+
+    def test_post_junk(self):
+        """Test to see if a general ajax still returns json correctly."""
+        c = Client()
+        c.force_login(self.user)
+        response = c.post(
+            '/test/',
+            HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertTrue(response.json())
+
