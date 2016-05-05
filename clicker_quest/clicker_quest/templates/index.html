@@ -9,6 +9,7 @@
   </head>
 
 
+  {% verbatim %}
   <script id="resource_template" type="text/x-handlebars-template">
     <li class="resource" id="{{ resource }}">
       <span class="{{ resource.color }}">{{ resource }}:</span>{{ resource.displayed }} / {{ resource.maximum }}({{resource.income}}/s)
@@ -56,7 +57,7 @@
   <script id="upgrade_cost_template" type="text/x-handlebars-template">
     <li>{{ resource }}: {{ amount }}</li>
   </script>
-
+{% endverbatim %}
 
 
 
