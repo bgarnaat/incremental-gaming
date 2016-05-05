@@ -337,7 +337,7 @@ class GameInstance(object):
             upgrade_name in self.model.upgrades and
             self.pay_cost(self.model.upgrades[upgrade_name].cost)
         ):
-            self.upgrades.add(upgrade_name)
+            self.acquire_upgrade(upgrade_name)
             self.calculate_values()
         return self.save_state_json(), self.client_state_json()
 
@@ -363,17 +363,16 @@ class GameInstance(object):
             'upgrades': [],
         }
         # resources
-        if self.resources:
-            for resource in self.model.resources.values():
-                owned = self.resources.get(resource.name)
-                if owned and (owned.owned or owned.income) and (not owned.maximum == 0):
-                    result['resources'].append({
-                        'name': resource.name,
-                        'description': resource.description,
-                        'owned': owned.owned,
-                        'income': owned.income,
-                        'maximum': owned.maximum,
-                    })
+        for resource in self.model.resources.values():
+            owned = self.resources.get(resource.name)
+            if owned and (owned.owned or owned.income) and (not owned.maximum == 0):
+                result['resources'].append({
+                    'name': resource.name,
+                    'description': resource.description,
+                    'owned': owned.owned,
+                    'income': owned.income,
+                    'maximum': owned.maximum,
+                })
 
         # buildings
         for building in self.model.buildings.values():
@@ -412,15 +411,15 @@ class GameInstance(object):
         # calculate upgrades
         for upgrade in self.upgrades:
             # effects on buildings
-            for building, effects in self.model.upgrades[upgrade].buildings:
+            for building, effects in self.model.upgrades[upgrade].buildings.items():
                 # cost modifiers
                 if 'cost' in effects:
-                    for resource, cost_modifier in effects['cost']:
-                        building.cost[resource] *= cost_modifier['multiplier']
+                    for resource, cost_modifier in effects['cost'].items():
+                        self.buildings[building].cost[resource] *= cost_modifier['multiplier']
                 # income modifiers
                 if 'income' in effects:
-                    for resource, income_modifier in effects['income']:
-                        building.income[resource] *= income_modifier['multiplier']
+                    for resource, income_modifier in effects['income'].items():
+                        self.buildings[building].income[resource] *= income_modifier['multiplier']
 
         # reset resources maximums and incomes
         for name, resource in self.resources.items():
@@ -432,17 +431,17 @@ class GameInstance(object):
             for resource, storage in building.storage.items():
                 self.acquire_storage(resource, storage * building.owned)
             for resource, income in building.income.items():
-                self.resources[resource].income += income * building.owned
+                self.acquire_income(resource, income * building.owned)
 
     def acquire_resource(self, resource_name, amount):
         """Add an amount of a resource to the state"""
         if resource_name not in self.resources:
             self.resources[resource_name] = Dicted(owned=0.0, maximum=self.model.resources[resource_name].maximum)
         cap = self.resources[resource_name].maximum
-        self.resources[resource_name].owned = min(
+        self.resources[resource_name].owned = max(0.0, min(
             self.resources[resource_name].owned + amount,
             float('inf') if cap is None else cap
-        )
+        ))
 
     def acquire_storage(self, resource_name, storage):
         """Add an amount of storage for a resource to the state"""
@@ -478,11 +477,8 @@ class GameInstance(object):
         """Fast forward the time of the game state to the given time"""
         self.calculate_values()
         seconds = seconds_to_fast_forward(current_time - self.time)
-        for resource in self.resources.values():
-            resource.owned = max(0, min(
-                resource.owned + resource.income * seconds,
-                resource.maximum or float('inf')
-            ))
+        for resource_name, resource in self.resources.items():
+            self.acquire_resource(resource_name, resource.income * seconds)
         self.time = current_time
 
     def requirement_is_met(self, unlock):
