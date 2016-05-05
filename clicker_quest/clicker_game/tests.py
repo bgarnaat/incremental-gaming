@@ -1,57 +1,10 @@
 from django.test import TestCase, Client
 from django.conf import settings
-from clicker_game.models import Clicker_Game, Game_Instance
+from clicker_game.models import ClickerGame, GameInstance
 from clicker_game.game_model import GameModel
 import factory
 import datetime
-import json
 # Create your tests here.
-
-JSON_TEST = '''
-{
-    "name": "cookie game",
-    "resources": {
-        "cookies": {
-            "description": "bake cookies"
-        }
-    },
-    "buildings": {
-        "cursor": {
-            "description": "clicks on cookies",
-            "cost": {"cookies": 15},
-            "cost_factor": 1.15,
-            "income": {"cookies": 1}
-        },
-        "grandma": {
-            "description": "a nice grandma",
-            "cost": {"cookies": 100},
-            "cost_factor": 1.15,
-            "income": {"cookies": 5}
-        }
-    },
-    "upgrades": {
-        "two fingers at once": {
-            "description": "doubles cursor income",
-            "cost": {"cookies": 100},
-            "buildings": {
-                "cursor": {
-                    "income": {
-                        "cookies": {
-                            "multiplier": 2
-                        }
-                    }
-                }
-            }
-        },
-        "ancestry": {
-            "description": "enables grandmas",
-            "unlock": {
-                "buildings": {"cursor": 5}
-            }
-        }
-    }
-}
-'''
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -77,8 +30,8 @@ class ClickerGameTest(TestCase):
 
     def test_game_exists(self):
         """Test a game can be made with the proper properties."""
-        self.game = Clicker_Game(owner=self.user, game_data={'click': 5},
-                                 name=u'Test Game')
+        self.game = ClickerGame(owner=self.user, game_data={'click': 5},
+                                name=u'Test Game')
         self.game.save()
         # Test the game is owned by a user and can easily be retrieved
         self.assertEqual(self.game.owner, self.user)
@@ -91,18 +44,18 @@ class ClickerGameTest(TestCase):
 class GameInstanceTest(TestCase):
     def setUp(self):
         self.user = UserFactory.create()
-        self.game = Clicker_Game(owner=self.user, game_data=u'JSON goes here.',
-                                 name=u'Test Game')
+        self.game = ClickerGame(owner=self.user, game_data=u'JSON goes here.',
+                                name=u'Test Game')
         self.game.save()
 
     def test_make_game_instance(self):
         """Test An Game Instance can be made."""
-        self.game1 = Game_Instance(user=self.user, game=self.game,
-                                   data={'clicks': 34})
+        self.game1 = GameInstance(user=self.user, game=self.game,
+                                  data={'clicks': 34})
         self.game1.save()
         self.assertEqual(self.game1.user, self.user)
         self.assertEqual(self.game1.game, self.game)
-        self.assertEqual(self.game1.data['clicks'], 34) 
+        self.assertEqual(self.game1.data['clicks'], 34)
         self.assertIsInstance(self.game1.modified, datetime.datetime)
         self.assertIsInstance(self.game1.created, datetime.datetime)
 
