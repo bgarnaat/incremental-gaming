@@ -22,6 +22,6 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^logout', logged_out),
     url(r'^accounts/profile', logged_in),
-    url(r'^accounts/register', UserRegistration.as_view()),
+    url(r'^accounts/register', UserRegistration.as_view(), name='register'),
     url(r'^accounts/', include('registration.backends.simple.urls')),
 ]
