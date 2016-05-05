@@ -3,8 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views.generic import View
 from clicker_game.models import Game_Instance, Clicker_Game
 import clicker_game.game_model as gm
-import datetime
-
+from django.utils import timezone
 # Create your views here.
 
 # The starting resources/buildings/etc for a new game.
@@ -17,10 +16,10 @@ class MainView(View):
     Otherwise give a new game instance.
     All post requests are done by ajax requests.
     """
-    template_name = 'base.html'
+    template_name = 'index.html'
 
     def get(self, request):
-        current_time = datetime.datetime.now()
+        current_time = timezone.now()
         current_game = Clicker_Game.objects.all()[0]
         game_model_data = current_game.game_data
         game_model = gm.GameModel(game_model_data)
@@ -45,7 +44,7 @@ class MainView(View):
 
     def post(self, request):
         # Set up the current game instance
-        current_time = datetime.datetime.now()
+        current_time = timezone.now()
         current_game = Clicker_Game.objects.all()[0]
         game_model_data = current_game.game_data
         game_model = gm.GameModel(game_model_data)
