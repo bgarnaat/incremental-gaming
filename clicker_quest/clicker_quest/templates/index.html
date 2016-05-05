@@ -14,7 +14,7 @@
     <li class="resource" data-name="{{ name }}">
       <span class="resource_name {{ color }}">{{ name }}:</span>
       <span class="displayed">{{ displayed }}</span>
-      {{ #if maximum !== null }}
+      {{ #if maximum }}
         / {{ maximum }}
       {{ /if }}
       ({{ income }}/s)
@@ -87,53 +87,14 @@
     <main>
       <section id="resources">
         <ul id="resource_ul">
-          <!-- {% for resource in resources %}   TODO delete these templates
-          <li class="resource" id="{{ resource }}">
-            <span class="{{ resource.color }}">{{ resource }}:</span> <span id="{{ resource }}_current">{{ resource.owned }}</span> / <span class="{{ resource }}_max">{{ resource.maximum }}</span> <span class="{{ resource }}_income">({{resource.income}}/s)</span>
-          </li>
-          <div class="popup">
-            <div class="description">{{ resource.description }}</div>
-          </div>
-          {% endfor %} -->
         </ul>
       </section>
       <section id="buildings">
         <ul id="building_ul">
-          <!-- {% for building in buildings %}
-          <li class="building {% if building.owned} owned {% endif }" id="{{ building }}">
-            {{ building }} {% if building.owned %}<span class="{{ building }}_current"> ({{ owned }}) </span>{% endif %}
-            <div class="popup_L">
-              <div class="description">{{ building.description }}</div>
-              <ul>
-                {% for (resource, amount) in cost %}
-                <li>{{ resource}}: {{ amount }}</li>
-                {% endfor %}
-              </ul>
-              <ul>
-                {% for (resource, rate) in income %}
-                <li>{{ resource}}: {{ rate }}</li>
-                {% endfor %}
-              </ul>
-            </div>
-          </li>
-          {% endfor %} -->
         </ul>
       </section>
       <section id="upgrades">
         <ul id="upgrade_ul">
-          <!-- {% for upgrade in upgrades %}
-          <li class="upgrade" upgrade-owned="{% if upgrade.owned %} owned {% endif %}" id="{{ upgrade }}">
-            {{ upgrade }} <span class="owned">{% if upgrade.owned %} (owned) {% endif %}</span>
-            <div class="popup_L">
-              <div class="description">{{upgrade.description}}</div>
-              <ul>
-                {% for (resource, amount) in cost %}
-                {{ resource }}: {{ amount }}
-                {% endfor %}
-              </ul>
-            </div>
-          </li>
-          {% endfor %} -->
         </ul>
       </section>
       <section id="leaderboard">
@@ -146,7 +107,8 @@
     </main>
     <footer>Clicker Quest.  Copyright (c) 2016 Copyright Holder All Rights Reserved.  Clicker Quest Co. Inc. LLC</footer>
 
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
     <script src="{% static 'game.js' %}"></script>
   </body>
 </html>

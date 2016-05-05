@@ -1,3 +1,5 @@
+'use strict'
+
 (function() {
   var game_data;
   var templates = {};
@@ -5,7 +7,7 @@
   // document.ready
   $(function() {
     // compile templates
-    ['resource', 'building', 'upgrade'].foreach(function(ele) {
+    ['resource', 'building', 'upgrade'].forEach(function(ele) {
       templates[ele] = Handlebars.compile($('#' + ele + "_template").text());
     });
     $.ajax({
@@ -64,18 +66,18 @@
     game_data.time = new Date().getTime() / 1000;
     // delete and redraw resources
     $('#resource_ul').clear();
-    game_data.resources.foreach(function(resource) {
+    game_data.resources.forEach(function(resource) {
       resource.displayed = resource.owned;
       draw_element(resource, 'resource');
     });
     // delete and redraw buildings
     $('#building_ul').clear();
-    game_data.buildings.foreach(function(building) {
+    game_data.buildings.forEach(function(building) {
       draw_element(building, 'building');
     });
     // delete and redraw upgrades
     $('#upgrade_ul').clear();
-    game_data.upgrades.foreach(function(upgrade) {
+    game_data.upgrades.forEach(function(upgrade) {
       draw_element(upgrade, 'upgrade');
     });
   }
@@ -93,7 +95,7 @@
     time_passed = current_time - game_data.time;
     // replace the resource amounts in the dom elements with the
     // value at our current time
-    game_data.resources.foreach(function(resource) {
+    game_data.resources.forEach(function(resource) {
         resource.element.find('.displayed').text(calc_resource(resource));
     });
   }
@@ -110,4 +112,4 @@
     return current_amount
   }
 
-});
+})();
