@@ -49,6 +49,10 @@ GameInstance:
 """
 
 
+FULL_SPEED_TIME = 86400.0  # full game speed for 1 day without being updated
+DECAY_TIME = 86400.0 * 6  # decay speed linearly to zero for 6 days after that
+
+
 class Dicted(object):
     """Basic python object that we can hang easy attributes off of.
     This should be much easier than constantly referencing dictionaries."""
@@ -282,7 +286,12 @@ def seconds_to_fast_forward(time):
 
     Accepts a timedelta and returns a float.
     """
-    return time.total_seconds()  # todo: long idle times should result in less effective time passed
+    actual = time.total_seconds()
+    effective = min(actual, FULL_SPEED_TIME)
+    extra = max(0.0, actual - FULL_SPEED_TIME)
+    extra = min(DECAY_TIME, extra)
+    effective += extra - extra**2 / (2 * DECAY_TIME)
+    return effective
 
 
 class GameInstance(object):
@@ -470,7 +479,10 @@ class GameInstance(object):
         self.calculate_values()
         seconds = seconds_to_fast_forward(current_time - self.time)
         for resource in self.resources.values():
-            resource.owned = min(resource.owned + resource.income * seconds, resource.maximum or float('inf'))
+            resource.owned = max(0, min(
+                resource.owned + resource.income * seconds,
+                resource.maximum or float('inf')
+            ))
         self.time = current_time
 
     def requirement_is_met(self, unlock):
