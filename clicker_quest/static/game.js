@@ -10,7 +10,7 @@
     });
     $.get({
       url: '/test/',  // TODO update this url
-      type: 'json',
+      dataType: 'json',
     }).done(function(data) {
       game_data = data;
       redraw_game();
@@ -29,7 +29,7 @@
           clicked: this.class,
           name: this.id,
         },
-        type: 'json'
+        dataType: 'json'
       }).done(function(data) {
         game_data = data;
         redraw_game();
