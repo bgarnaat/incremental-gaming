@@ -321,6 +321,7 @@ class GameInstance(object):
         self.fast_forward(current_time)
         if (
             building_name in self.model.buildings and
+            self.requirement_is_met(self.model.buildings[building_name].unlock) and
             self.pay_cost(self.cost_of_building(building_name, number_to_buy=number_purchased))
         ):
             self.acquire_building(building_name, number_purchased)
@@ -335,6 +336,7 @@ class GameInstance(object):
         self.fast_forward(current_time)
         if (
             upgrade_name in self.model.upgrades and
+            self.requirement_is_met(self.model.upgrades[upgrade_name].unlock) and
             self.pay_cost(self.model.upgrades[upgrade_name].cost)
         ):
             self.acquire_upgrade(upgrade_name)
