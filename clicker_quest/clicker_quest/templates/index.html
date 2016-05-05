@@ -5,9 +5,62 @@
     <meta charset="utf-8">
     <title>Clicker Quest!</title>
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.1.1/normalize.min.css">
-    <!-- <link rel="stylesheet" type="text/css" href="normalize.css"> -->
     <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
   </head>
+
+
+  {% verbatim %}
+  <script id="resource_template" type="text/x-handlebars-template">
+    <li class="resource" id="{{ resource }}">
+      <span class="{{ resource.color }}">{{ resource }}:</span>{{ resource.displayed }} / {{ resource.maximum }}({{resource.income}}/s)
+      <div class="popup">
+        <div class="description">{{ resource.description }}</div>
+      </div>
+    </li>
+  </script>
+
+
+  <script id="building_template" type="text/x-handlebars-template">
+    <li class="building {{ #if building.owned }} owned {{ /if }}" id="{{ building }}">
+      {{ building }} {{ #if building.owned }} ({{ owned }}) {{ /if }}
+      <div class="popup_L">
+        <div class="description">{{ building.description }}</div>
+        <ul class="building_cost">
+        </ul>
+        <ul class="building_income">
+        </ul>
+      </div>
+    </li>
+  </script>
+
+  <script id="building_cost_template" type="text/x-handlebars-template">
+    <li>{{ resource }}: {{ resource.amount }}</li>
+  </script>
+
+  <script id="building_income_template" type="text/x-handlebars-template">
+    <li>{{ resource }}: {{ resource.rate }}</li>
+  </script>
+
+
+  <script id="upgrade_template" type="text/x-handlebars-template">
+    <li class="upgrade {{ #if upgrade.owned }} owned {{ /if }}" id="{{ upgrade }}">
+      {{ upgrade }} {{ #if upgrade.owned }} (owned) {{ /if }}
+      <div class="popup_L">
+        <div class="description">{{ upgrade.description }}</div>
+        <ul class="upgrade_cost">
+        </ul>
+      </div>
+    </li>
+  </script>
+
+
+  <script id="upgrade_cost_template" type="text/x-handlebars-template">
+    <li>{{ resource }}: {{ amount }}</li>
+  </script>
+{% endverbatim %}
+
+
+
   <body>
     <header>
       <hgroup>
@@ -31,54 +84,54 @@
     <div class="clearfix"></div>
     <main>
       <section id="resources">
-        <ul>
-          {% for resource in game.resources %}
+        <ul id="resource_ul">
+          <!-- {% for resource in resources %}
           <li class="resource" id="{{ resource }}">
-            <span class="{{ data.color }}">{{ resource.name }}:</span> <span id="{{ resource }}_current">{{ resource.owned }}</span> / <span class="{{ resource }}_max">{{ resource.maximum }}</span> <span class="{{ resource }}_income">({{ resource.income }}/s)</span>
+            <span class="{{ resource.color }}">{{ resource }}:</span> <span id="{{ resource }}_current">{{ resource.owned }}</span> / <span class="{{ resource }}_max">{{ resource.maximum }}</span> <span class="{{ resource }}_income">({{resource.income}}/s)</span>
           </li>
           <div class="popup">
-            <div class="description">{{ data.description }}<div>
+            <div class="description">{{ resource.description }}</div>
           </div>
-          {% endfor %}
+          {% endfor %} -->
         </ul>
       </section>
       <section id="buildings">
-        <ul>
-          {% for data in game.buildings %}
-          <li class="building {% if data.owned %} owned {% endif %}" id="{{ building }}">
-            {{ data.name }} {% if data.owned %}<span class="{{ building }}_current"> ({{ data.owned }}) </span>{% endif %}
+        <ul id="building_ul">
+          <!-- {% for building in buildings %}
+          <li class="building {% if building.owned} owned {% endif }" id="{{ building }}">
+            {{ building }} {% if building.owned %}<span class="{{ building }}_current"> ({{ owned }}) </span>{% endif %}
             <div class="popup_L">
-              <div class="description">{{ data.description }}<div>
+              <div class="description">{{ building.description }}</div>
               <ul>
-                {% for resource, cost in data.cost.items %}
-                <li>Cost: {{ resource }}: {{ cost }}</li>
+                {% for (resource, amount) in cost %}
+                <li>{{ resource}}: {{ amount }}</li>
                 {% endfor %}
               </ul>
               <ul>
-                {% for resource, rate in data.income.items %}
-                <li>Generates: {{ resource }}: {{ rate }}/s</li>
+                {% for (resource, rate) in income %}
+                <li>{{ resource}}: {{ rate }}</li>
                 {% endfor %}
               </ul>
             </div>
           </li>
-          {% endfor %}
+          {% endfor %} -->
         </ul>
       </section>
       <section id="upgrades">
-        <ul>
-          {% for data in game.upgrades %}
-          <li class="upgrade" data-owned="{% if data.owned %} owned {% endif %}" id="{{ upgrade }}">
-            {{ data.name }} <span class="owned">{% if data.owned %} (owned) {% endif %}<span>
+        <ul id="upgrade_ul">
+          <!-- {% for upgrade in upgrades %}
+          <li class="upgrade" upgrade-owned="{% if upgrade.owned %} owned {% endif %}" id="{{ upgrade }}">
+            {{ upgrade }} <span class="owned">{% if upgrade.owned %} (owned) {% endif %}</span>
             <div class="popup_L">
-              <div class="description">{{data.description}}</div>
+              <div class="description">{{upgrade.description}}</div>
               <ul>
-                {% for resource, amount in data.cost.items %}
+                {% for (resource, amount) in cost %}
                 {{ resource }}: {{ amount }}
                 {% endfor %}
               </ul>
             </div>
           </li>
-          {% endfor %}
+          {% endfor %} -->
         </ul>
       </section>
       <section id="leaderboard">
@@ -90,6 +143,8 @@
       </section>
     </main>
     <footer>Clicker Quest.  Copyright (c) 2016 Copyright Holder All Rights Reserved.  Clicker Quest Co. Inc. LLC</footer>
+
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js'></script>
+    <script src="{% static 'game.js' %}"></script>
   </body>
 </html>

@@ -1,7 +1,28 @@
-<!--
 (function() {
-  // I am writing JavaScript!  OH NO!
   var game_data;
+  var templates = {};
+
+  $(function() {
+    $.get(
+      url: '/test/',
+      success: function(data) {
+        game_data = data;
+      },
+      type: 'json',
+    );
+    [
+      'resource',
+      'building',
+      'building_cost',
+      'building_income',
+      'upgrade',
+      'upgrade_cost',
+    ].foreach(function(ele) {
+      templates[ele] = Handlebars.compile($('#' + ele + "_template").text());
+    });
+    draw_game(game_data);
+    setInterval(update_resources(game_data), 100);
+  });
 
 
   $('section').on('click', 'li', function(){
@@ -10,49 +31,103 @@
         url: '/test/',
         data: {
           csrfmiddlewaretoken: getCookie('csrftoken'),
-          this.attr('class'): true,
-          name: this.attr('id'),
+          clicked: this.class,
+          name: this.id,
         },
-        // TODO:  WRITE ACTUAL SUCCESS / UPDATE FUNCTION
-        success: window.location.reload();
-        // success: update_info(data);
+        success: draw_game
       );
     };
   });
 
-  // function update_info(data); {
-  //
-  // }
 
-
-  $().ready(load);
-
-  // var game_data
-  function load() {
-    $.get(
-      url: '/test/',
-      success: function(data) {
-        game_data = data;
-      },
-      type: 'json',
-    );
-
-    setInterval(calc_data(game_data), 1000)
+  // From Django AJAX page:  https://docs.djangoproject.com/en/1.9/ref/csrf/#ajax
+  function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+      var cookies = document.cookie.split(';');
+      for (var i = 0; i < cookies.length; i++) {
+        var cookie = jQuery.trim(cookies[i]);
+        // Does this cookie string begin with the name we want?
+        if (cookie.substring(0, name.length + 1) == (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
   }
 
-  function calc_data(game_data) {
+
+  function draw_game(game_data) {
+    update_resources(game_data.resources, 'resource');
+    update_buildings(game_data.buildings, 'building');
+    update_upgrades(game_data.upgrades, 'upgrade');
+  }
+
+  // function draw_resource(data) {
+  //   $('#resource_ul').append(render(data, 'resource'));
+  // }
+
+  //  draw element into page.  template name defaults to element name
+  function draw_element(data, element) {
+    $('#' + element + "_ul").append(render(data, element));
+  }
+
+
+  // callback for our timer to animate resource values
+  function update_resources() {
+    current_time = new Date().getTime() / 1000;
+    time_passed = current_time - game_date.time;
+    $('#resource_ul').clear();
     for (var resource in game_data.resources) {
-      if (game_data.resources.hasOwnProperty(resource)) {
-        resource.owned += income;
-        update_resource(resource)
+      var cur_res = game_data.resources[resource]
+      cur_res.displayed = calc_resource(cur_res, time_passed)
+      // draw_resource(cur_res);
+      draw_element(cur_res, 'resource');
+      }
+    }
+  }
+  function update_buildings() {
+    $('#building_ul').clear();
+    for (var building in game_data.buildings) {
+      var cur_building = game_data.buildings[building]
+        draw_element(cur_building, 'building');
+      }
+      for (var cost in game_data.buildings[building]) {
+        draw_element(cost, 'building_cost')
+      }
+      for (var income in game_data.buildings[building]) {
+        draw_element(income, 'building_income')
+      }
+    }
+  }
+  function update_upgrades() {
+    $('#upgrade_ul').clear();
+    for (var upgrade in game_data.upgrades) {
+      var cur_upgrade = game_data.upgrades[upgrade]
+        draw_element(cur_upgrade, 'upgrade');
+      }
+      for (var cost in game_data.upgrades[upgrade]) {
+        draw_cost(cost, 'upgrade_cost')
       }
     }
   }
 
-  function update_resource(resource) {
-    $(resource + '_current').text(resource.owned);
+
+  function calc_resource(resource, time_passed) {
+    current_amount = resource.owned + time_passed * resource.income;
+    if (current_amount < 0) {
+      current_amount == 0;
+    } elseif (resource.maximum !== null && current_amount > resource.maximum) {
+      current_amount = resource.maximum;
+    }
+    return current_amount
   }
 
 
+  var render = function(data, element) {
+    return templates[element](data)
+  };
+
+
 });
- -->
