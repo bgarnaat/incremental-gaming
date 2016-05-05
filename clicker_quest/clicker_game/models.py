@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.conf import settings
+from django.contrib.postgres.fields import JSONField
 
 # Create your models here.
 
@@ -11,7 +12,7 @@ class Clicker_Game(models.Model):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               on_delete=models.CASCADE,
                               related_name='games_owned')
-    game_data = models.TextField()
+    game_data = JSONField()
     modified = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
     name = models.CharField(max_length=200)
@@ -26,6 +27,6 @@ class Game_Instance(models.Model):
                              on_delete=models.CASCADE,
                              related_name='games_playing')
     game = models.ForeignKey(Clicker_Game, related_name='running_games')
-    data = models.TextField()
+    data = JSONField()
     modified = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
