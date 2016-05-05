@@ -39,6 +39,7 @@
     };
   });
 
+
   // From Django AJAX page:  https://docs.djangoproject.com/en/1.9/ref/csrf/#ajax
   function getCookie(name) {
     var cookieValue = null;
@@ -56,6 +57,7 @@
     return cookieValue;
   }
 
+
   function draw_game(game_data) {
     update_resources(game_data.resources, 'resource');
     update_buildings(game_data.buildings, 'building');
@@ -70,22 +72,6 @@
   function draw_element(data, element) {
     $('#' + element + "_ul").append(render(data, element));
   }
-
-  //  render function will construct full template name as '#' + template + '_template'
-  // function draw_element(data, element, template = element) {
-  //   $('#' + element + "_ul").append(render(data, template));
-  // }
-
-
-  // function draw_building(data, element) {
-  //   $('#' + element + "_ul").append(render(data));
-  //   for (var cost in data) {
-  //     draw_element(cost, element + "cost")
-  //   }
-  //   for (var income in data) {
-  //     draw_element(income, element + "income")
-  //   }
-  // }
 
 
   // callback for our timer to animate resource values
@@ -128,7 +114,7 @@
   }
 
 
-  function calc_resource(game_data, current_time, time_passed) {
+  function calc_resource(resource, time_passed) {
     current_amount = resource.owned + time_passed * resource.income;
     if (current_amount < 0) {
       current_amount == 0;
