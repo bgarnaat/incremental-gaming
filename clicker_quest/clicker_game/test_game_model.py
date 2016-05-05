@@ -781,7 +781,7 @@ class GameModelTestCase(TestCase):
             'upgrades': [
                 {
                     'name': "gas mining",
-                    'unlock': {'buildings': {"extractor": 2}},
+                    'unlock': {'buildings': {"miner": 2}},
                     'cost': {"minerals": 60.0},
                 },
                 {
@@ -805,14 +805,101 @@ class GameModelTestCase(TestCase):
         self.instance = self.game.load_game_instance(self.game.new_game, self.time)
         self.maxDiff = None
 
-    def test_initial_state(self):
+    def test_acquire_resource(self):
         self.instance.calculate_values()
+        self.instance.acquire_resource("gas", 1.0)
         self.assertEqual(
             self.instance.save_state_json(),
+            {'resources': {"minerals": 16.0, "gas": 1.0}}
+        )
+
+    def test_acquire_resource_over_max(self):
+        self.instance.calculate_values()
+        self.instance.acquire_resource("gas", 1e20)
+        self.assertEqual(self.instance.resources["gas"].owned, 100.0)
+
+    def test_acquire_storage(self):
+        self.instance.calculate_values()
+        self.instance.acquire_storage("gas", 42.0)
+        self.assertEqual(self.instance.resources["gas"].maximum, 142.0)
+        self.instance.acquire_resource("gas", 1e20)
+        self.assertEqual(self.instance.resources["gas"].owned, 142.0)
+
+    def test_acquire_income(self):
+        self.instance.calculate_values()
+        self.instance.acquire_income("gas", 42.0)
+        self.assertEqual(self.instance.resources["gas"].income, 42.0)
+
+    def test_acquire_building(self):
+        self.instance.acquire_building("warehouse", 1)
+        self.assertEqual(self.instance.buildings["warehouse"].owned, 1)
+
+    def test_buildings_increase_in_cost(self):
+        self.instance.calculate_values()
+        self.assertEqual(
+            self.instance.cost_of_building("miner", 1),
+            {"minerals": 10.0}
+        )
+        self.instance.acquire_building("miner", 1)
+        self.instance.calculate_values()
+        self.assertEqual(
+            self.instance.cost_of_building("miner", 1),
+            {"minerals": 11.0}
+        )
+
+    def test_buildings_affect_income(self):
+        self.instance.acquire_building("miner", 1)
+        self.instance.calculate_values()
+        self.assertEqual(self.instance.resources["minerals"].income, 5.0)
+
+    def test_buildings_affect_storage(self):
+        self.instance.acquire_building("warehouse", 1)
+        self.instance.calculate_values()
+        self.assertEqual(self.instance.buildings["warehouse"].owned, 1)
+        self.assertEqual(self.instance.resources["gas"].maximum, 120.0)
+
+    def test_acquire_upgrade(self):
+        self.instance.acquire_upgrade("extractor efficiency")
+        self.assertIn("extractor efficiency", self.instance.upgrades)
+
+    def test_upgrades_affect_buildings(self):
+        self.instance.acquire_building("extractor", 1)
+        self.instance.calculate_values()
+        self.assertEqual(
+            self.instance.cost_of_building("extractor", 1),
+            {"minerals": 75.0}
+        )
+        self.assertEqual(
+            self.instance.buildings["extractor"].income,
+            {"gas": 5.0}
+        )
+        self.assertEqual(
+            self.instance.resources["gas"].income,
+            5.0
+        )
+        self.instance.acquire_upgrade("extractor efficiency")
+        self.instance.calculate_values()
+        self.assertEqual(
+            self.instance.cost_of_building("extractor", 1),
+            {"minerals": 75.0 / 2}
+        )
+        self.assertEqual(
+            self.instance.buildings["extractor"].income,
+            {"gas": 10.0}
+        )
+        self.assertEqual(
+            self.instance.resources["gas"].income,
+            10.0
+        )
+
+    def test_initial_state(self):
+        save, client = self.instance.get_current_state(self.time)
+        self.assertEqual(
+            save,
             self.game.new_game
         )
         self.assertEqual(
-            self.instance.client_state_json(),
+            client,
             {
                 'resources': [
                     {
@@ -837,4 +924,140 @@ class GameModelTestCase(TestCase):
             }
         )
 
-    # todo test game mechanics
+    def test_do_nothing(self):
+        save, client = self.instance.get_current_state(self.time + timedelta(seconds=3600))
+        self.assertEqual(
+            save,
+            self.game.new_game
+        )
+        self.assertEqual(
+            client,
+            {
+                'resources': [
+                    {
+                        'name': "minerals",
+                        'description': "",
+                        'owned': 16.0,
+                        'maximum': None,
+                        'income': 0.0,
+                    },
+                ],
+                'buildings': [
+                    {
+                        'name': "miner",
+                        'description': "",
+                        'owned': 0,
+                        'cost': {"minerals": 10.0},
+                        'cost10': {"minerals": cost(10, 1.1, 0, 10)},
+                        'income': {"minerals": 5.0},
+                    },
+                ],
+                'upgrades': [],
+            }
+        )
+
+    def test_purchase_building_fail(self):
+        save, client = self.instance.purchase_building(self.time, "miner", 10)
+        # nothing has changed
+        self.assertEqual(
+            save,
+            self.game.new_game
+        )
+        self.assertEqual(
+            client,
+            {
+                'resources': [
+                    {
+                        'name': "minerals",
+                        'description': "",
+                        'owned': 16.0,
+                        'maximum': None,
+                        'income': 0.0,
+                    },
+                ],
+                'buildings': [
+                    {
+                        'name': "miner",
+                        'description': "",
+                        'owned': 0,
+                        'cost': {"minerals": 10.0},
+                        'cost10': {"minerals": cost(10, 1.1, 0, 10)},
+                        'income': {"minerals": 5.0},
+                    },
+                ],
+                'upgrades': [],
+            }
+        )
+
+    def test_purchase_building_success(self):
+        save, client = self.instance.purchase_building(self.time, "miner", 1)
+        # now we have 1 miner
+        self.assertEqual(
+            save,
+            {
+                'resources': {"minerals": 6.0},
+                'buildings': {"miner": 1},
+            }
+        )
+        self.assertEqual(
+            client,
+            {
+                'resources': [
+                    {
+                        'name': "minerals",
+                        'description': "",
+                        'owned': 6.0,
+                        'maximum': None,
+                        'income': 5.0,
+                    },
+                ],
+                'buildings': [
+                    {
+                        'name': "miner",
+                        'description': "",
+                        'owned': 1,
+                        'cost': {"minerals": cost(10, 1.1, 1, 1)},
+                        'cost10': {"minerals": cost(10, 1.1, 1, 10)},
+                        'income': {"minerals": 5.0},
+                    },
+                ],
+                'upgrades': [],
+            }
+        )
+
+    def test_purchase_building_and_wait(self):
+        self.instance.purchase_building(self.time, "miner", 1)
+        save, client = self.instance.get_current_state(self.time + timedelta(seconds=10))
+        # now we have 1 miner
+        self.assertEqual(
+            save,
+            {
+                'resources': {"minerals": 56.0},  # 5 minerals/second
+                'buildings': {"miner": 1},
+            }
+        )
+        self.assertEqual(
+            client,
+            {
+                'resources': [
+                    {
+                        'name': "minerals",
+                        'description': "",
+                        'owned': 56.0,
+                        'maximum': None,
+                        'income': 5.0,
+                    },
+                ],
+                'buildings': [
+                    {
+                        'name': "miner",
+                        'description': "",
+                        'owned': 1,
+                        'cost': {"minerals": cost(10, 1.1, 1, 1)},
+                        'cost10': {"minerals": cost(10, 1.1, 1, 10)},
+                        'income': {"minerals": 5.0},
+                    },
+                ],
+                'upgrades': [],
+            }
+        )
