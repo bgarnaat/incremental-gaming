@@ -759,7 +759,7 @@ class GameModelTestCase(TestCase):
                 },
                 {
                     'name': "extractor",
-                    'unlock': {'upgrades': ["gas mining"]},
+                    'unlock': {'upgrades': ["gas extraction"]},
                     'cost': {'minerals': 50.0},
                     'cost_factor': 1.5,
                     'income': {"gas": 5.0},
@@ -780,7 +780,7 @@ class GameModelTestCase(TestCase):
             ],
             'upgrades': [
                 {
-                    'name': "gas mining",
+                    'name': "gas extraction",
                     'unlock': {'buildings': {"miner": 2}},
                     'cost': {"minerals": 60.0},
                 },
@@ -956,7 +956,7 @@ class GameModelTestCase(TestCase):
             }
         )
 
-    def test_purchase_building_fail(self):
+    def test_purchase_building_fail_too_many(self):
         save, client = self.instance.purchase_building(self.time, "miner", 10)
         # nothing has changed
         self.assertEqual(
@@ -971,6 +971,41 @@ class GameModelTestCase(TestCase):
                         'name': "minerals",
                         'description': "",
                         'owned': 16.0,
+                        'maximum': None,
+                        'income': 0.0,
+                    },
+                ],
+                'buildings': [
+                    {
+                        'name': "miner",
+                        'description': "",
+                        'owned': 0,
+                        'cost': {"minerals": 10.0},
+                        'cost10': {"minerals": cost(10, 1.1, 0, 10)},
+                        'income': {"minerals": 5.0},
+                    },
+                ],
+                'upgrades': [],
+            }
+        )
+
+    def test_purchase_building_fail_not_unlocked(self):
+        self.instance.calculate_values()
+        self.instance.acquire_resource("minerals", 1000.0)
+        save, client = self.instance.purchase_building(self.time, "extractor", 1)
+        # nothing has changed
+        self.assertEqual(
+            save,
+            {'resources': {"minerals": 1016.0}}
+        )
+        self.assertEqual(
+            client,
+            {
+                'resources': [
+                    {
+                        'name': "minerals",
+                        'description': "",
+                        'owned': 1016.0,
                         'maximum': None,
                         'income': 0.0,
                     },
@@ -1059,5 +1094,151 @@ class GameModelTestCase(TestCase):
                     },
                 ],
                 'upgrades': [],
+            }
+        )
+
+    def test_make_upgrade_available(self):
+        self.instance.purchase_building(self.time, "miner", 1)
+        save, client = self.instance.purchase_building(self.time + timedelta(seconds=10), "miner", 1)
+        # with two miners the "gas extraction" upgrade should be unlocked
+        self.assertEqual(
+            save,
+            {
+                'resources': {"minerals": 45.0},  # 5 minerals/second
+                'buildings': {"miner": 2},
+            }
+        )
+        self.assertEqual(
+            client,
+            {
+                'resources': [
+                    {
+                        'name': "minerals",
+                        'description': "",
+                        'owned': 45.0,
+                        'maximum': None,
+                        'income': 10.0,
+                    },
+                ],
+                'buildings': [
+                    {
+                        'name': "miner",
+                        'description': "",
+                        'owned': 2,
+                        'cost': {"minerals": cost(10, 1.1, 2, 1)},
+                        'cost10': {"minerals": cost(10, 1.1, 2, 10)},
+                        'income': {"minerals": 5.0},
+                    },
+                ],
+                'upgrades': [
+                    {
+                        'name': "gas extraction",
+                        'description': "",
+                        'owned': False,
+                        'cost': {"minerals": 60},
+                    },
+                ],
+            }
+        )
+
+    def test_buy_upgrade(self):
+        self.instance.purchase_building(self.time, "miner", 1)
+        self.instance.purchase_building(
+            self.time + timedelta(seconds=10),
+            "miner", 1
+        )
+        self.instance.purchase_upgrade(
+            self.time + timedelta(seconds=20),
+            "gas extraction"
+        )
+        save, client = self.instance.purchase_building(
+            self.time + timedelta(seconds=120),
+            "miner", 2
+        )
+        # we don't own any extractors but they should be available
+        self.assertNotIn("extractor", save['buildings'])
+        self.assertIn("extractor", (x['name'] for x in client['buildings']))
+        # warehouse is not unlocked yet either
+        self.assertNotIn("warehouse", (x['name'] for x in client['buildings']))
+        # now buy 1 extractor
+        save, client = self.instance.purchase_building(
+            self.time + timedelta(seconds=120),
+            "extractor", 1
+        )
+        expected_minerals = (
+            16 +                        # starting minerals
+            (-10) +                     # first miner purchased
+            5.0*10 +                    # income from 0-10 seconds
+            (-11) +                     # second miner purchased
+            10.0*10 +                   # income from 10-20 seconds
+            (-60) +                     # cost of gas extraction
+            10.0*100 +                  # income from 20-120 seconds
+            (-cost(10, 1.1, 2, 2)) +    # cost of 3rd and 4th miners
+            (-50.0)                     # cost of extractor
+        )
+        self.assertEqual(
+            save,
+            {
+                'resources': {"minerals": expected_minerals},  # 5 minerals/second
+                'buildings': {"miner": 4, "extractor": 1},
+                'upgrades': ["gas extraction"],
+            }
+        )
+        self.assertEqual(
+            client,
+            {
+                'resources': [
+                    {
+                        'name': "minerals",
+                        'description': "",
+                        'owned': expected_minerals,
+                        'maximum': None,
+                        'income': 20.0,
+                    },
+                    {
+                        'name': "gas",
+                        'description': "",
+                        'owned': 0.0,
+                        'maximum': 110.0,
+                        'income': 5.0,
+                    },
+                ],
+                'buildings': [
+                    {
+                        'name': "miner",
+                        'description': "",
+                        'owned': 4,
+                        'cost': {"minerals": cost(10, 1.1, 4, 1)},
+                        'cost10': {"minerals": cost(10, 1.1, 4, 10)},
+                        'income': {"minerals": 5.0},
+                    },
+                    {
+                        'name': "extractor",
+                        'description': "",
+                        'owned': 1,
+                        'cost': {"minerals": cost(50, 1.5, 1, 1)},
+                        'cost10': {"minerals": cost(50, 1.5, 1, 10)},
+                        'income': {"gas": 5.0},
+                    },
+                    {
+                        'name': "warehouse",
+                        'description': "",
+                        'owned': 0,
+                        'cost': {"minerals": 3.0, "gas": 2.0},
+                        'cost10': {
+                            "minerals": cost(3.0, 2.0, 0, 10),
+                            "gas": cost(2.0, 2.0, 0, 10),
+                        },
+                        'income': {},
+                    },
+                ],
+                'upgrades': [
+                    {
+                        'name': "gas extraction",
+                        'description': "",
+                        'owned': True,
+                        'cost': {"minerals": 60.0},
+                    },
+                ],
             }
         )
