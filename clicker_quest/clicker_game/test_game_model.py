@@ -1,7 +1,17 @@
 # coding=utf-8
+from datetime import datetime, timedelta
 from django.test import TestCase
 
-from clicker_game.game_model import validate_game_model
+from clicker_game.game_model import (
+    validate_game_model,
+    seconds_to_fast_forward,
+    FULL_SPEED_TIME,
+    DECAY_TIME,
+)
+
+
+def cost(base, factor, owned, buy):
+    return sum(base * factor ** n for n in range(owned, owned + buy))
 
 
 class GameModelValidationTest(TestCase):
@@ -611,11 +621,29 @@ class GameModelValidationTest(TestCase):
         ])
         self.validate_ok()
 
+    def test_new_game_extra_key(self):
+        self.game['new_game'] = {
+            'unknown': {1: 1},
+        }
+        self.dont_validate("Invalid key in new game state")
+
     def test_new_game_invalid_resources(self):
         self.game['new_game'] = {
             'resources': "not a dict"
         }
         self.dont_validate("Resource amounts must be a json object")
+
+    def test_new_game_non_dict_buildings(self):
+        self.game['new_game'] = {
+            'buildings': "not a dict"
+        }
+        self.dont_validate("building counts must be a json object")
+
+    def test_new_game_non_list_upgrades(self):
+        self.game['new_game'] = {
+            'upgrades': "not a list"
+        }
+        self.dont_validate("Upgrades value in new game state is not a list")
 
     def test_new_game_nonexistent_building(self):
         self.game['new_game'] = {
@@ -681,15 +709,132 @@ class GameModelValidationTest(TestCase):
         self.validate_ok()
 
 
+class FastForwardTestCase(TestCase):
+    def test_negative_time(self):
+        self.assertEqual(
+            seconds_to_fast_forward(timedelta(seconds=-1000)),
+            0.0
+        )
+
+    def test_full_speed(self):
+        self.assertEqual(
+            seconds_to_fast_forward(timedelta(seconds=FULL_SPEED_TIME)),
+            FULL_SPEED_TIME
+        )
+
+    def test_partial_speed(self):
+        test_time = FULL_SPEED_TIME + DECAY_TIME / 2
+        self.assertLess(
+            seconds_to_fast_forward(timedelta(seconds=test_time)),
+            test_time
+        )
+
+    def test_time_stops_after_decay(self):
+        self.assertEqual(
+            seconds_to_fast_forward(timedelta(seconds=FULL_SPEED_TIME + DECAY_TIME)),
+            seconds_to_fast_forward(timedelta(seconds=FULL_SPEED_TIME + DECAY_TIME * 3))
+        )
+
+
 class GameModelTestCase(TestCase):
     def setUp(self):
         self.game = validate_game_model({
             'name': "game",
             'description': "a game",
-            'resources': [],
-            'buildings': [],
-            'upgrades': [],
-            'new_game': {},
+            'resources': [
+                {
+                    'name': "minerals",
+                },
+                {
+                    'name': "gas",
+                    'maximum': 100.0,
+                },
+            ],
+            'buildings': [
+                {
+                    'name': "miner",
+                    'cost': {"minerals": 10.0},
+                    'cost_factor': 1.1,
+                    'income': {"minerals": 5.0},
+                },
+                {
+                    'name': "extractor",
+                    'unlock': {'upgrades': ["gas mining"]},
+                    'cost': {'minerals': 50.0},
+                    'cost_factor': 1.5,
+                    'income': {"gas": 5.0},
+                    'storage': {"gas": 10.0},
+                },
+                {
+                    'name': "warehouse",
+                    'unlock': {'buildings': {"extractor": 1}},
+                    'cost': {
+                        "minerals": 3.0,
+                        "gas": 2.0,
+                    },
+                    'cost_factor': 2.0,
+                    'storage': {
+                        "gas": 20.0,
+                    },
+                },
+            ],
+            'upgrades': [
+                {
+                    'name': "gas mining",
+                    'unlock': {'buildings': {"extractor": 2}},
+                    'cost': {"minerals": 60.0},
+                },
+                {
+                    'name': "extractor efficiency",
+                    'unlock': {'buildings': {"extractor": 4}},
+                    'cost': {
+                        "minerals": 200.0,
+                        "gas": 100.0,
+                    },
+                    'buildings': {
+                        "extractor": {
+                            'cost': {"minerals": {'multiplier': .5}},
+                            'income': {"gas": {'multiplier': 2.0}},
+                        },
+                    },
+                },
+            ],
+            'new_game': {'resources': {"minerals": 16.0}}
         })
+        self.time = datetime(2000, 1, 1)
+        self.instance = self.game.load_game_instance(self.game.new_game, self.time)
+        self.maxDiff = None
+
+    def test_initial_state(self):
+        self.instance.calculate_values()
+        self.assertEqual(
+            self.instance.save_state_json(),
+            self.game.new_game
+        )
+        self.assertEqual(
+            self.instance.client_state_json(),
+            {
+                'resources': [
+                    {
+                        'name': "minerals",
+                        'description': "",
+                        'owned': 16.0,
+                        'maximum': None,
+                        'income': 0.0,
+                    },
+                ],
+                'buildings': [
+                    {
+                        'name': "miner",
+                        'description': "",
+                        'owned': 0,
+                        'cost': {"minerals": 10.0},
+                        'cost10': {"minerals": cost(10, 1.1, 0, 10)},
+                        'income': {"minerals": 5.0},
+                    },
+                ],
+                'upgrades': [],
+            }
+        )
 
     # todo test game mechanics
