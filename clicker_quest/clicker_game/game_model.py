@@ -60,7 +60,7 @@ class Dicted(object):
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def __repr__(self):
+    def __repr__(self):  # pragma: no cover
         return "Dicted(**{0})".format(self.__dict__)
 
 
@@ -220,7 +220,7 @@ def validate_game_model(json_data):
 
     except KeyError as ex:
         raise ValueError("Missing key: {0}".format(ex.args[0]))
-    except (TypeError, AttributeError) as ex:
+    except (TypeError, AttributeError) as ex:  # pragma: no cover
         raise ValueError("Wrong type of value somewhere", ex.args)
 
     return model
@@ -286,7 +286,7 @@ def seconds_to_fast_forward(time):
 
     Accepts a timedelta and returns a float.
     """
-    actual = time.total_seconds()
+    actual = max(0.0, time.total_seconds())
     effective = min(actual, FULL_SPEED_TIME)
     extra = max(0.0, actual - FULL_SPEED_TIME)
     extra = min(DECAY_TIME, extra)
