@@ -7,7 +7,7 @@ from django.contrib.postgres.fields import JSONField
 # Create your models here.
 
 
-class Clicker_Game(models.Model):
+class ClickerGame(models.Model):
     """Model for a general clicker game."""
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               on_delete=models.CASCADE,
@@ -18,7 +18,7 @@ class Clicker_Game(models.Model):
     name = models.CharField(max_length=200)
 
 
-class Game_Instance(models.Model):
+class GameInstance(models.Model):
     """Model for a single clicker game instance/state"""
     class meta:
         unique_together = ('user', 'game')
@@ -26,7 +26,7 @@ class Game_Instance(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
                              on_delete=models.CASCADE,
                              related_name='games_playing')
-    game = models.ForeignKey(Clicker_Game, related_name='running_games')
+    game = models.ForeignKey(ClickerGame, related_name='running_games')
     data = JSONField()
     modified = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
