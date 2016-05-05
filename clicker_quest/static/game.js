@@ -8,10 +8,10 @@
     ['resource', 'building', 'upgrade'].foreach(function(ele) {
       templates[ele] = Handlebars.compile($('#' + ele + "_template").text());
     });
-    $.get(
+    $.get({
       url: '/test/',  // TODO update this url
       type: 'json',
-    ).done(function(data) {
+    }).done(function(data) {
       game_data = data;
       redraw_game();
       setInterval(update_resources(game_data), 100);
@@ -21,7 +21,7 @@
 
   $('section').on('click', 'li', function(){
     if (this.class === 'building' || this.class === 'upgrade') {
-      $.post(
+      $.post({
         url: '/test/',  // TODO update this url
         contentType: 'application/json',
         data: {
@@ -30,7 +30,7 @@
           name: this.id,
         },
         type: 'json'
-      ).done(function(data) {
+      }).done(function(data) {
         game_data = data;
         redraw_game();
       });
