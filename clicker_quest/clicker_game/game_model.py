@@ -415,11 +415,21 @@ class GameInstance(object):
                 # cost modifiers
                 if 'cost' in effects:
                     for resource, cost_modifier in effects['cost'].items():
-                        self.buildings[building].cost[resource] *= cost_modifier['multiplier']
+                        new_cost = (
+                            self.buildings[building].cost.pop(resource, 0.0) *
+                            cost_modifier['multiplier']
+                        )
+                        if new_cost:
+                            self.buildings[building].cost[resource] = new_cost
                 # income modifiers
                 if 'income' in effects:
                     for resource, income_modifier in effects['income'].items():
-                        self.buildings[building].income[resource] *= income_modifier['multiplier']
+                        new_income = (
+                            self.buildings[building].income[resource] *
+                            income_modifier['multiplier']
+                        )
+                        if new_income:
+                            self.buildings[building].income[resource] = new_income
 
         # reset resources maximums and incomes
         for name, resource in self.resources.items():
