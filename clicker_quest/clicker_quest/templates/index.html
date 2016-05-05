@@ -11,36 +11,39 @@
 
   {% verbatim %}
   <script id="resource_template" type="text/x-handlebars-template">
-    <li class="resource" id="{{ resource }}">
-      <span class="{{ resource.color }}">{{ resource }}:</span>{{ resource.displayed }} / {{ resource.maximum }}({{resource.income}}/s)
+    <li class="resource" data-name="{{ name }}">
+      <span class="resource_name {{ color }}">{{ name }}:</span>
+      <span class="displayed">{{ displayed }}</span>
+      {{ #if maximum !== null }}
+        / {{ maximum }}
+      {{ /if }}
+      ({{ income }}/s)
       <div class="popup">
-        <div class="description">{{ resource.description }}</div>
+        <div class="description">{{ description }}</div>
       </div>
     </li>
   </script>
-
 
   <script id="building_template" type="text/x-handlebars-template">
-    <li class="building {{ #if building.owned }} owned {{ /if }}" id="{{ building }}">
-      {{ building }} {{ #if building.owned }} ({{ owned }}) {{ /if }}
+    <li class="building{{ #if owned }} owned{{ /if }}" data-name="{{ name }}">
+      {{ name }} {{ #if owned }} ({{ owned }}) {{ /if }}
       <div class="popup_L">
-        <div class="description">{{ building.description }}</div>
+        <div class="description">{{ description }}</div>
         <ul class="building_cost">
+          <li class="list_label">Cost:</li>
+          {{ #each cost }}
+            <li>{{ @key }}: {{ this }}</li>
+          {{ /each }}
         </ul>
         <ul class="building_income">
+          <li class="list_label">Income:</li>
+          {{ #each income }}
+            <li>{{ @key }}: {{ this }}</li>
+          {{ /each }}
         </ul>
       </div>
     </li>
   </script>
-
-  <script id="building_cost_template" type="text/x-handlebars-template">
-    <li>{{ resource }}: {{ resource.amount }}</li>
-  </script>
-
-  <script id="building_income_template" type="text/x-handlebars-template">
-    <li>{{ resource }}: {{ resource.rate }}</li>
-  </script>
-
 
   <script id="upgrade_template" type="text/x-handlebars-template">
     <li class="upgrade {{ #if upgrade.owned }} owned {{ /if }}" id="{{ upgrade }}">
@@ -48,14 +51,13 @@
       <div class="popup_L">
         <div class="description">{{ upgrade.description }}</div>
         <ul class="upgrade_cost">
+          <li class="list_label">Cost:</li>
+          {{ #each cost }}
+            <li>{{ @key }}: {{ this }}</li>
+          {{ /each }}
         </ul>
       </div>
     </li>
-  </script>
-
-
-  <script id="upgrade_cost_template" type="text/x-handlebars-template">
-    <li>{{ resource }}: {{ amount }}</li>
   </script>
 {% endverbatim %}
 
