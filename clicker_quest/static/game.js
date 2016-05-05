@@ -5,14 +5,17 @@
   // document.ready
   $(function() {
     // compile templates
+    console.log('ready to do js')
     ['resource', 'building', 'upgrade'].foreach(function(ele) {
       templates[ele] = Handlebars.compile($('#' + ele + "_template").text());
     });
+    console.log('lets do ajax')
     $.ajax({
       type: 'GET',
       url: '/test/',  // TODO update this url
       dataType: 'json',
-    }).done(function(data) {
+    }).done(function(data, message, xhr) {
+      console.log('Did a ajax get')
       game_data = data;
       redraw_game();
       setInterval(update_resources(game_data), 100);
