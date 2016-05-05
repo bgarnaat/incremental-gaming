@@ -680,4 +680,16 @@ class GameModelValidationTest(TestCase):
         }
         self.validate_ok()
 
-    # todo calculation tests
+
+class GameModelTestCase(TestCase):
+    def setUp(self):
+        self.game = validate_game_model({
+            'name': "game",
+            'description': "a game",
+            'resources': [],
+            'buildings': [],
+            'upgrades': [],
+            'new_game': {},
+        })
+
+    # todo test game mechanics
