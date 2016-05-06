@@ -14,9 +14,9 @@
     <li class="resource" data-name="{{ name }}">
       <span class="resource_name {{ color }}">{{ name }}:</span>
       <span class="displayed">{{ displayed }}</span>
-      {{ #if maximum }}
+      {{#if maximum}}
         / {{ maximum }}
-      {{ /if }}
+      {{/if}}
       ({{ income }}/s)
       <div class="popup">
         <div class="description">{{ description }}</div>
@@ -25,36 +25,36 @@
   </script>
 
   <script id="building_template" type="text/x-handlebars-template">
-    <li class="building{{ #if owned }} owned{{ /if }}" data-name="{{ name }}">
-      {{ name }} {{ #if owned }} ({{ owned }}) {{ /if }}
+    <li class="building{{#if owned}} owned{{/if}}" data-name="{{ name }}">
+      {{ name }} {{#if owned}} ({{ owned }}) {{/if}}
       <div class="popup_L">
         <div class="description">{{ description }}</div>
         <ul class="building_cost">
           <li class="list_label">Cost:</li>
-          {{ #each cost }}
+          {{#each cost}}
             <li>{{ @key }}: {{ this }}</li>
-          {{ /each }}
+          {{/each}}
         </ul>
         <ul class="building_income">
           <li class="list_label">Income:</li>
-          {{ #each income }}
+          {{#each income}}
             <li>{{ @key }}: {{ this }}</li>
-          {{ /each }}
+          {{/each}}
         </ul>
       </div>
     </li>
   </script>
 
   <script id="upgrade_template" type="text/x-handlebars-template">
-    <li class="upgrade {{ #if upgrade.owned }} owned {{ /if }}" id="{{ upgrade }}">
-      {{ upgrade }} {{ #if upgrade.owned }} (owned) {{ /if }}
+    <li class="upgrade {{#if upgrade.owned}} owned {{/if}}" id="{{ upgrade }}">
+      {{ upgrade }} {{#if upgrade.owned}} (owned) {{/if}}
       <div class="popup_L">
         <div class="description">{{ upgrade.description }}</div>
         <ul class="upgrade_cost">
           <li class="list_label">Cost:</li>
-          {{ #each cost }}
+          {{#each cost}}
             <li>{{ @key }}: {{ this }}</li>
-          {{ /each }}
+          {{/each}}
         </ul>
       </div>
     </li>
@@ -106,7 +106,6 @@
       </section>
     </main>
     <footer>Clicker Quest.  Copyright (c) 2016 Copyright Holder All Rights Reserved.  Clicker Quest Co. Inc. LLC</footer>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
     <script src="{% static 'game.js' %}"></script>

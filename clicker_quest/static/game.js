@@ -1,6 +1,6 @@
 'use strict'
 
-(function() {
+(function(module) {
   var game_data;
   var templates = {};
 
@@ -109,7 +109,6 @@
     } else if (resource.maximum !== null && current_amount > resource.maximum) {
       current_amount = resource.maximum;
     }
-    return current_amount
+    return current_amount;
   }
-
-})();
+})(window);
