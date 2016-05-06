@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login To Clicker Quest</title>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
+</head>
+<body>
+<header>
+    <hgroup>
+        <h1>Clicker Quest: Login</h1>
+    </hgroup>
+</header>
+<section id="buildings">
+<form action="" method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Submit" />
+</form>
+<a href="{% url 'register' %}">Register New Account</a>
+</section>
+</div>
+</body>
+</html>
