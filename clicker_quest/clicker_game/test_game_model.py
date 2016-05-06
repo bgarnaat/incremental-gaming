@@ -1,5 +1,6 @@
 # coding=utf-8
 from datetime import datetime, timedelta
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from clicker_game.game_model import (
@@ -28,7 +29,7 @@ class GameModelValidationTest(TestCase):
     def dont_validate(self, message, ):
         try:
             validate_game_model(self.game)
-        except ValueError as ex:
+        except ValidationError as ex:
             self.assertIn(message, ex.args[0])
         else:
             self.assertFalse("validation did not fail")
@@ -37,7 +38,7 @@ class GameModelValidationTest(TestCase):
         validate_game_model(self.game)
 
     def test_non_dict_model(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValidationError):
             validate_game_model("not a dict")
 
     def test_non_list_resources(self):
