@@ -9,7 +9,7 @@
   });
 
   Handlebars.registerHelper('incomeFormat', function(number) {
-    return number.toFixed(2);
+    return number.toFixed(3);
   });
 
   // document.ready
