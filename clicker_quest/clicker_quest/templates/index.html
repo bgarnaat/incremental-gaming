@@ -13,11 +13,11 @@
   <script id="resource_template" type="text/x-handlebars-template">
     <li class="resource" data-name="{{ name }}">
       <span class="resource_name {{ color }}">{{ name }}:</span>
-      <span class="displayed">{{ displayed }}</span>
+      <span class="displayed">{{costFormat displayed }}</span>
       {{#if maximum}}
-        / {{ maximum }}
+        / {{costFormat maximum }}
       {{/if}}
-      ({{ income }}/s)
+      ({{incomeFormat income }}/s)
       <div class="popup">
         <div class="description">{{ description }}</div>
       </div>
@@ -25,20 +25,20 @@
   </script>
 
   <script id="building_template" type="text/x-handlebars-template">
-    <li class="building{{#if owned}} owned{{/if}}" data-name="{{ name }}">
+    <li class="building{{#if owned}} owned{{/if}}" data-name="{{ name }}" data-type="building">
       {{ name }} {{#if owned}} ({{ owned }}) {{/if}}
       <div class="popup_L">
         <div class="description">{{ description }}</div>
         <ul class="building_cost">
           <li class="list_label">Cost:</li>
           {{#each cost}}
-            <li>{{ @key }}: {{ this }}</li>
+            <li>{{ @key }}: {{costFormat this }}</li>
           {{/each}}
         </ul>
         <ul class="building_income">
           <li class="list_label">Income:</li>
           {{#each income}}
-            <li>{{ @key }}: {{ this }}</li>
+            <li>{{ @key }}: {{incomeFormat this }}</li>
           {{/each}}
         </ul>
       </div>
@@ -46,14 +46,14 @@
   </script>
 
   <script id="upgrade_template" type="text/x-handlebars-template">
-    <li class="upgrade {{#if upgrade.owned}} owned {{/if}}" id="{{ upgrade }}">
-      {{ upgrade }} {{#if upgrade.owned}} (owned) {{/if}}
+    <li class="upgrade {{#if owned}} owned {{/if}}" data-name="{{ name }}" data-type="upgrade">
+      {{ name }} {{#if owned}} (owned) {{/if}}
       <div class="popup_L">
-        <div class="description">{{ upgrade.description }}</div>
+        <div class="description">{{ description }}</div>
         <ul class="upgrade_cost">
           <li class="list_label">Cost:</li>
           {{#each cost}}
-            <li>{{ @key }}: {{ this }}</li>
+            <li>{{ @key }}: {{costFormat this }}</li>
           {{/each}}
         </ul>
       </div>
