@@ -18,7 +18,7 @@ from django.contrib import admin
 from clicker_game.views import MainView, UserRegistration, logged_in, logged_out
 
 urlpatterns = [
-    url(r'^/', MainView.as_view(), name='game_page'),
+    url(r'^/$', MainView.as_view(), name='game_page'),
     url(r'^admin/', admin.site.urls),
     url(r'^logout', logged_out),
     url(r'^accounts/profile', logged_in),
