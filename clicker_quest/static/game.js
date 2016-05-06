@@ -17,7 +17,7 @@
     }).done(function(data) {
       game_data = data;
       redraw_game();
-      setInterval(update_resources(game_data), 100);
+      setInterval(update_resources, 100);
     });
   });
 
