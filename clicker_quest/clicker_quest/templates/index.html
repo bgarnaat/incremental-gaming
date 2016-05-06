@@ -6,7 +6,7 @@
     <title>Clicker Quest!</title>
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.1.1/normalize.min.css">
     <!-- <link rel="stylesheet" type="text/css" href="normalize.css"> -->
-    <link rel="stylesheet" type="text/css" href="{% static 'imager/base.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
   </head>
   <body>
     <header>
@@ -32,9 +32,9 @@
     <main>
       <section id="resources">
         <ul>
-          {% for (resource, data) in resources %}
+          {% for resource in game.resources %}
           <li class="resource" id="{{ resource }}">
-            <span class="{{ data.color }}">{{ resource }}:</span> <span id="{{ resource }}_current">data.owned</span> / {% if }<span class="{{ resource }}_max">{{ data.maximum }}</span> <span class="{{ resource }}_income">({{data.income}}/s)</span>
+            <span class="{{ data.color }}">{{ resource.name }}:</span> <span id="{{ resource }}_current">{{ resource.owned }}</span> / <span class="{{ resource }}_max">{{ resource.maximum }}</span> <span class="{{ resource }}_income">({{ resource.income }}/s)</span>
           </li>
           <div class="popup">
             <div class="description">{{ data.description }}<div>
@@ -44,19 +44,19 @@
       </section>
       <section id="buildings">
         <ul>
-          {% for (building, data) in buildings %}
-          <li class="building {% if data.owned} owned {% endif }" id="{{ building }}">
-            {{ building }} {% if data.owned %}<span class="{{ building }}_current"> ({{ owned }}) </span>{% endif %}
+          {% for data in game.buildings %}
+          <li class="building {% if data.owned %} owned {% endif %}" id="{{ building }}">
+            {{ data.name }} {% if data.owned %}<span class="{{ building }}_current"> ({{ data.owned }}) </span>{% endif %}
             <div class="popup_L">
               <div class="description">{{ data.description }}<div>
               <ul>
-                {% for (resource, amount) in cost %}
-                <li>{{ resource}}: {{ amount }}</li>
+                {% for resource, cost in data.cost.items %}
+                <li>Cost: {{ resource }}: {{ cost }}</li>
                 {% endfor %}
               </ul>
               <ul>
-                {% for (resource, rate) in income %}
-                <li>{{ resource}}: {{ rate }}</li>
+                {% for resource, rate in data.income.items %}
+                <li>Generates: {{ resource }}: {{ rate }}/s</li>
                 {% endfor %}
               </ul>
             </div>
@@ -66,13 +66,13 @@
       </section>
       <section id="upgrades">
         <ul>
-          {% for (upgrade, data) in upgrades %}
+          {% for data in game.upgrades %}
           <li class="upgrade" data-owned="{% if data.owned %} owned {% endif %}" id="{{ upgrade }}">
-            {{ upgrade }} <span class="owned">{% if data.owned %} (owned) {% endif %}<span>
+            {{ data.name }} <span class="owned">{% if data.owned %} (owned) {% endif %}<span>
             <div class="popup_L">
               <div class="description">{{data.description}}</div>
               <ul>
-                {% for (resource, amount) in cost %}
+                {% for resource, amount in data.cost.items %}
                 {{ resource }}: {{ amount }}
                 {% endfor %}
               </ul>
@@ -90,5 +90,6 @@
       </section>
     </main>
     <footer>Clicker Quest.  Copyright (c) 2016 Copyright Holder All Rights Reserved.  Clicker Quest Co. Inc. LLC</footer>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js'></script>
   </body>
 </html>
