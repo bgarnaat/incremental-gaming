@@ -110,6 +110,6 @@
     } else if (resource.maximum !== null && current_amount > resource.maximum) {
       current_amount = resource.maximum;
     }
-    return current_amount;
+    return current_amount.toFixed(2);
   }
 })(window);
