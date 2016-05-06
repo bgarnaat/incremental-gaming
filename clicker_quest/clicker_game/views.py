@@ -61,12 +61,12 @@ class MainView(View):
                                                 game=current_game)
         game_instance = game_model.load_game_instance(db_instance.data,
                                                       db_instance.modified)
-
+        #import pdb; pdb.set_trace()
         if request.POST.get('clicked') == 'building':
             building_name = request.POST.get('name')
             number_purchased = request.POST.get('number_purchased')
             db_json, front_end_json = game_instance.purchase_building(
-                current_time, building_name, number_purchased)
+                current_time, building_name, int(number_purchased))
         elif request.POST.get('clicked') == 'upgrade':
             upgrade_name = request.POST.get('name')
             db_json, front_end_json = game_instance.purchase_upgrade(
