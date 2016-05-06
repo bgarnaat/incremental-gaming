@@ -1243,3 +1243,24 @@ class GameModelTestCase(TestCase):
                 ],
             }
         )
+
+    def test_do_not_double_buy_upgrade(self):
+        self.instance.purchase_building(self.time, "miner", 1)
+        self.instance.purchase_building(
+            self.time + timedelta(seconds=10),
+            "miner", 1
+        )
+        self.instance.purchase_upgrade(
+            self.time + timedelta(seconds=1000),
+            "gas extraction"
+        )
+        current_minerals = self.instance.resources["minerals"].owned
+        # make sure we have enough money to buy it again
+        self.assertGreaterEqual(current_minerals, self.game.upgrades["gas extraction"].cost["minerals"])
+        # attempt to purchase upgrade again
+        self.instance.purchase_upgrade(
+            self.time + timedelta(seconds=1000),
+            "gas extraction"
+        )
+        # money should not have gone down
+        self.assertEqual(current_minerals, self.instance.resources["minerals"].owned)
