@@ -128,9 +128,10 @@ section {
   display: inline-block;
   min-width: 100px;
   padding: 5px;
-  background: #333;
+  background: #456;
   border-radius: 3.5px;
   border: 1px solid #ddd;
+  box-shadow: 0 1px 1px #aaa;
   }
 
 .building {
@@ -145,12 +146,19 @@ section {
 
 .afford_no {
   color: #777;
+  background: #333;
   border: 1px solid #777;
+  box-shadow: 0 2px 2px #333;
 }
+
 
 .resource, .upgrade {
   margin: 5px;
   padding: 5px;
+}
+
+.blue, .green, .oragne, .purple {
+  font-size: 1.1em;
 }
 
 .blue {
@@ -215,4 +223,8 @@ li:hover .popup, li:hover .popup_L {
 .popup, .popup_L {
   border-radius: 4px;
   box-shadow: 3px 3px 3px #555;
+}
+
+.popup:hover, .popup_L:hover {
+  /*display: none;*/
 }
