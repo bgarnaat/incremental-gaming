@@ -4,6 +4,14 @@
   var game_data;
   var templates = {};
 
+  Handlebars.registerHelper('costFormat', function(number) {
+    return number.tofixed(2);
+  });
+
+  Handlebars.registerHelper('incomeFormat', function(number) {
+    return number.tofixed(2);
+  });
+
   // document.ready
   $(function() {
     // compile templates
@@ -97,7 +105,9 @@
     // replace the resource amounts in the dom elements with the
     // value at our current time
     game_data.resources.forEach(function(resource) {
-        resource.element.find('.displayed').text(calc_resource(resource, time_passed));
+        resource.element.find('.displayed').text(
+          calc_resource(resource, time_passed).tofixed(2)
+        );
     });
   }
 
@@ -110,6 +120,6 @@
     } else if (resource.maximum !== null && current_amount > resource.maximum) {
       current_amount = resource.maximum;
     }
-    return current_amount.toFixed(2);
+    return current_amount;
   }
 })(window);
