@@ -20,7 +20,7 @@
     });
     $.ajax({
       type: 'GET',
-      url: '/test/',  // TODO update this url
+      url: '/',  // TODO update this url
       dataType: 'json',
     }).done(function(data) {
       game_data = data;
@@ -35,7 +35,7 @@
     if (li_type === 'building' || li_type === 'upgrade') {
       $.ajax({
         type: 'POST',
-        url: '/test/',  // TODO update this url
+        url: '/',  // TODO update this url
         headers: {"X-CSRFToken": getCookie('csrftoken')},
         data: {
           clicked: li_type,
