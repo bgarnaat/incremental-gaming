@@ -141,21 +141,21 @@ class MainViewTest(TestCase):
     def test_get_request_html(self):
         c = Client()
         c.force_login(self.user)
-        response = c.get('/test/')
+        response = c.get('/')
         self.assertTemplateUsed(response, 'index.html')
         self.assertIsInstance(response.context['game'], dict)
 
     def test_get_request_ajax(self):
         c = Client()
         c.force_login(self.user)
-        response = c.get('/test/', HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        response = c.get('/', HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         self.assertTrue(response.json())
 
     def test_post_building(self):
         c = Client()
         c.force_login(self.user)
         response = c.post(
-            '/test/',
+            '/',
             {'building': True, 'name': 'a building', 'number_purchased': 1},
             HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         self.assertTrue(response.json())
@@ -164,7 +164,7 @@ class MainViewTest(TestCase):
         c = Client()
         c.force_login(self.user)
         response = c.post(
-            '/test/',
+            '/',
             {'upgrade': True, 'name': 'a upgrade'},
             HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         self.assertTrue(response.json())
@@ -174,7 +174,6 @@ class MainViewTest(TestCase):
         c = Client()
         c.force_login(self.user)
         response = c.post(
-            '/test/',
+            '/',
             HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         self.assertTrue(response.json())
-
