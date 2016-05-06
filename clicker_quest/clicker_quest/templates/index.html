@@ -5,9 +5,64 @@
     <meta charset="utf-8">
     <title>Clicker Quest!</title>
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.1.1/normalize.min.css">
-    <!-- <link rel="stylesheet" type="text/css" href="normalize.css"> -->
     <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
   </head>
+
+
+  {% verbatim %}
+  <script id="resource_template" type="text/x-handlebars-template">
+    <li class="resource" data-name="{{ name }}">
+      <span class="resource_name {{ color }}">{{ name }}:</span>
+      <span class="displayed">{{ displayed }}</span>
+      {{#if maximum}}
+        / {{ maximum }}
+      {{/if}}
+      ({{ income }}/s)
+      <div class="popup">
+        <div class="description">{{ description }}</div>
+      </div>
+    </li>
+  </script>
+
+  <script id="building_template" type="text/x-handlebars-template">
+    <li class="building{{#if owned}} owned{{/if}}" data-name="{{ name }}">
+      {{ name }} {{#if owned}} ({{ owned }}) {{/if}}
+      <div class="popup_L">
+        <div class="description">{{ description }}</div>
+        <ul class="building_cost">
+          <li class="list_label">Cost:</li>
+          {{#each cost}}
+            <li>{{ @key }}: {{ this }}</li>
+          {{/each}}
+        </ul>
+        <ul class="building_income">
+          <li class="list_label">Income:</li>
+          {{#each income}}
+            <li>{{ @key }}: {{ this }}</li>
+          {{/each}}
+        </ul>
+      </div>
+    </li>
+  </script>
+
+  <script id="upgrade_template" type="text/x-handlebars-template">
+    <li class="upgrade {{#if upgrade.owned}} owned {{/if}}" id="{{ upgrade }}">
+      {{ upgrade }} {{#if upgrade.owned}} (owned) {{/if}}
+      <div class="popup_L">
+        <div class="description">{{ upgrade.description }}</div>
+        <ul class="upgrade_cost">
+          <li class="list_label">Cost:</li>
+          {{#each cost}}
+            <li>{{ @key }}: {{ this }}</li>
+          {{/each}}
+        </ul>
+      </div>
+    </li>
+  </script>
+{% endverbatim %}
+
+
+
   <body>
     <header>
       <hgroup>
@@ -31,54 +86,15 @@
     <div class="clearfix"></div>
     <main>
       <section id="resources">
-        <ul>
-          {% for resource in game.resources %}
-          <li class="resource" id="{{ resource }}">
-            <span class="{{ data.color }}">{{ resource.name }}:</span> <span id="{{ resource }}_current">{{ resource.owned }}</span> / <span class="{{ resource }}_max">{{ resource.maximum }}</span> <span class="{{ resource }}_income">({{ resource.income }}/s)</span>
-          </li>
-          <div class="popup">
-            <div class="description">{{ data.description }}<div>
-          </div>
-          {% endfor %}
+        <ul id="resource_ul">
         </ul>
       </section>
       <section id="buildings">
-        <ul>
-          {% for data in game.buildings %}
-          <li class="building {% if data.owned %} owned {% endif %}" id="{{ building }}">
-            {{ data.name }} {% if data.owned %}<span class="{{ building }}_current"> ({{ data.owned }}) </span>{% endif %}
-            <div class="popup_L">
-              <div class="description">{{ data.description }}<div>
-              <ul>
-                {% for resource, cost in data.cost.items %}
-                <li>Cost: {{ resource }}: {{ cost }}</li>
-                {% endfor %}
-              </ul>
-              <ul>
-                {% for resource, rate in data.income.items %}
-                <li>Generates: {{ resource }}: {{ rate }}/s</li>
-                {% endfor %}
-              </ul>
-            </div>
-          </li>
-          {% endfor %}
+        <ul id="building_ul">
         </ul>
       </section>
       <section id="upgrades">
-        <ul>
-          {% for data in game.upgrades %}
-          <li class="upgrade" data-owned="{% if data.owned %} owned {% endif %}" id="{{ upgrade }}">
-            {{ data.name }} <span class="owned">{% if data.owned %} (owned) {% endif %}<span>
-            <div class="popup_L">
-              <div class="description">{{data.description}}</div>
-              <ul>
-                {% for resource, amount in data.cost.items %}
-                {{ resource }}: {{ amount }}
-                {% endfor %}
-              </ul>
-            </div>
-          </li>
-          {% endfor %}
+        <ul id="upgrade_ul">
         </ul>
       </section>
       <section id="leaderboard">
@@ -90,6 +106,8 @@
       </section>
     </main>
     <footer>Clicker Quest.  Copyright (c) 2016 Copyright Holder All Rights Reserved.  Clicker Quest Co. Inc. LLC</footer>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+    <script src="{% static 'game.js' %}"></script>
   </body>
 </html>
