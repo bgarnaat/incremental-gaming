@@ -1,7 +1,7 @@
 from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponseRedirect
 from django.views.generic import View
-from clicker_game.models import Game_Instance, Clicker_Game
+from clicker_game.models import GameInstance, ClickerGame
 import clicker_game.game_model as gm
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
@@ -24,18 +24,18 @@ class MainView(View):
 
     def get(self, request):
         current_time = timezone.now()
-        current_game = Clicker_Game.objects.all()[0]
+        current_game = ClickerGame.objects.all()[0]
         game_model_data = current_game.game_data
         game_model = gm.GameModel(game_model_data)
         if request.user.is_authenticated():
             try:  # To get the user's current game
-                db_instance = Game_Instance.objects.get(user=request.user,
+                db_instance = GameInstance.objects.get(user=request.user,
                                                         game=current_game)
                 game_instance = game_model.load_game_instance(
                     db_instance.data,
                     db_instance.modified)
             except ObjectDoesNotExist:  # make a new game instance
-                db_instance = Game_Instance(user=request.user, game=current_game)
+                db_instance = GameInstance(user=request.user, game=current_game)
                 game_instance = game_model.load_game_instance(
                     game_model.new_game, current_time)
             db_json, front_end_json = game_instance.get_current_state(
@@ -54,10 +54,10 @@ class MainView(View):
     def post(self, request):
         # Set up the current game instance
         current_time = timezone.now()
-        current_game = Clicker_Game.objects.all()[0]
+        current_game = ClickerGame.objects.all()[0]
         game_model_data = current_game.game_data
         game_model = gm.GameModel(game_model_data)
-        db_instance = Game_Instance.objects.get(user=request.user,
+        db_instance = GameInstance.objects.get(user=request.user,
                                                 game=current_game)
         game_instance = game_model.load_game_instance(db_instance.data,
                                                       db_instance.modified)
@@ -80,7 +80,6 @@ class MainView(View):
         db_instance.save()
         game = front_end_json
         return JsonResponse(game)
-
 
 class UserRegistration(RegistrationView):
     def get_success_url(self, user):
