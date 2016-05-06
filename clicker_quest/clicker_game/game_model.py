@@ -345,6 +345,7 @@ class GameInstance(object):
         self.fast_forward(current_time)
         if (
             upgrade_name in self.model.upgrades and
+            upgrade_name not in self.upgrades and
             self.requirement_is_met(self.model.upgrades[upgrade_name].unlock) and
             self.pay_cost(self.model.upgrades[upgrade_name].cost)
         ):
