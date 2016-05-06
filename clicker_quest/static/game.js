@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 (function(module) {
   var game_data;
@@ -65,18 +65,18 @@
     // mark the game data with the time it arrived
     game_data.time = new Date().getTime() / 1000;
     // delete and redraw resources
-    $('#resource_ul').clear();
+    $('#resource_ul').remove();
     game_data.resources.forEach(function(resource) {
       resource.displayed = resource.owned;
       draw_element(resource, 'resource');
     });
     // delete and redraw buildings
-    $('#building_ul').clear();
+    $('#building_ul').remove();
     game_data.buildings.forEach(function(building) {
       draw_element(building, 'building');
     });
     // delete and redraw upgrades
-    $('#upgrade_ul').clear();
+    $('#upgrade_ul').remove();
     game_data.upgrades.forEach(function(upgrade) {
       draw_element(upgrade, 'upgrade');
     });
@@ -91,8 +91,8 @@
   // callback for our timer to animate resource values
   function update_resources() {
     // calculate elapsed time
-    current_time = new Date().getTime() / 1000;
-    time_passed = current_time - game_data.time;
+    var current_time = new Date().getTime() / 1000;
+    var time_passed = current_time - game_data.time;
     // replace the resource amounts in the dom elements with the
     // value at our current time
     game_data.resources.forEach(function(resource) {
@@ -103,7 +103,7 @@
   /* calculate the amount of resources we have now, a given amount
   of time after the game data was last updated */
   function calc_resource(resource, time_passed) {
-    current_amount = resource.owned + time_passed * resource.income;
+    var current_amount = resource.owned + time_passed * resource.income;
     if (current_amount < 0) {
       current_amount == 0;
     } else if (resource.maximum !== null && current_amount > resource.maximum) {
