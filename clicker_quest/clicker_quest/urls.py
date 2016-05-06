@@ -18,10 +18,10 @@ from django.contrib import admin
 from clicker_game.views import MainView, UserRegistration, logged_in, logged_out
 
 urlpatterns = [
-    url(r'^/$', MainView.as_view(), name='game_page'),
+    url(r'^$', MainView.as_view(), name='game_page'),
     url(r'^admin/', admin.site.urls),
-    url(r'^logout', logged_out),
-    url(r'^accounts/profile', logged_in),
+    url(r'^logout/$', logged_out),
+    url(r'^accounts/profile/$', logged_in),
     url(r'^accounts/register', UserRegistration.as_view(), name='register'),
     url(r'^accounts/', include('registration.backends.simple.urls')),
 ]
