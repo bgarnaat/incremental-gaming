@@ -46,10 +46,10 @@
   </script>
 
   <script id="upgrade_template" type="text/x-handlebars-template">
-    <li class="upgrade {{#if upgrade.owned}} owned {{/if}}" data-type="upgrade">
-      {{ upgrade }} {{#if upgrade.owned}} (owned) {{/if}}
+    <li class="upgrade {{#if owned}} owned {{/if}}" data-name="{{ name }}" data-type="upgrade">
+      {{ name }} {{#if owned}} (owned) {{/if}}
       <div class="popup_L">
-        <div class="description">{{ upgrade.description }}</div>
+        <div class="description">{{ description }}</div>
         <ul class="upgrade_cost">
           <li class="list_label">Cost:</li>
           {{#each cost}}
