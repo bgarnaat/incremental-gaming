@@ -23,15 +23,16 @@
 
 
   $('section').on('click', 'li', function(){
-    if (this.class === 'building' || this.class === 'upgrade') {
+    var li_type = $(this).data('type')
+    if (li_type === 'building' || li_type === 'upgrade') {
       $.ajax({
         type: 'POST',
         url: '/test/',  // TODO update this url
-        contentType: 'application/json',
+        headers: {"X-CSRFToken": getCookie('csrftoken')},
         data: {
-          csrfmiddlewaretoken: getCookie('csrftoken'),
-          clicked: this.class,
-          name: this.id,
+          clicked: li_type,
+          name: $(this).data('name'),
+          number_purchased: 1
         },
         dataType: 'json'
       }).done(function(data) {
