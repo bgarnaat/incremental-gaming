@@ -224,7 +224,3 @@ li:hover .popup, li:hover .popup_L {
   border-radius: 4px;
   box-shadow: 3px 3px 3px #555;
 }
-
-.popup:hover, .popup_L:hover {
-  /*display: none;*/
-}
