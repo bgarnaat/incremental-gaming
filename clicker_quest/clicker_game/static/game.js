@@ -5,11 +5,11 @@
   var templates = {};
 
   Handlebars.registerHelper('costFormat', function(number) {
-    return number.tofixed(2);
+    return number.toFixed(2);
   });
 
   Handlebars.registerHelper('incomeFormat', function(number) {
-    return number.tofixed(2);
+    return number.toFixed(3);
   });
 
   // document.ready
@@ -106,7 +106,7 @@
     // value at our current time
     game_data.resources.forEach(function(resource) {
         resource.element.find('.displayed').text(
-          calc_resource(resource, time_passed).tofixed(2)
+          calc_resource(resource, time_passed).toFixed(2)
         );
     });
   }

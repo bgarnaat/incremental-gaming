@@ -1,4 +1,5 @@
 migrations/
+/clicker_quest/static/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -77,7 +77,7 @@ def validate_game_model(json_data):
             {'name', 'description', 'resources', 'buildings', 'upgrades', 'new_game'}
         )
         if difference:
-            raise ValidationError("Missing or extra keys in game model description", difference)
+            raise ValidationError("Missing or extra keys in game model description: {0}".format(difference,))
 
         if not all(
             isinstance(json_data[x], list)
@@ -93,9 +93,11 @@ def validate_game_model(json_data):
                 raise ValidationError("Resource amounts must be a json object")
             for resource_name, amount in cost_data.items():
                 if resource_name not in model.resources:
-                    raise ValidationError("Resource amounts specify nonexistent resource", resource_name)
+                    raise ValidationError("Resource amounts specify nonexistent resource: {0}".format(resource_name,))
                 if not isinstance(amount, (int, float)):
-                    raise ValidationError("Non-numeric resource amount", resource_name, amount)
+                    raise ValidationError("Non-numeric resource amount {1} in resource {0}".format(
+                        resource_name, amount
+                    ))
 
         # noinspection PyShadowingNames
         def validate_unlock(unlock):
@@ -104,21 +106,21 @@ def validate_game_model(json_data):
             if not isinstance(unlock, dict):
                 raise ValidationError("Unlock must be a json object with keys and values")
             if not all(x in ('buildings', 'upgrades') for x in unlock):
-                raise ValidationError("Extra values in unlock", unlock)
+                raise ValidationError("Extra values in unlock: {0}".format(unlock,))
             if 'buildings' in unlock:
                 if not isinstance(unlock['buildings'], dict):
                     raise ValidationError("Unlock's buildings field must be a json object with keys and values")
                 for building_name, number in unlock['buildings'].items():
                     if building_name not in model.buildings:
-                        raise ValidationError("Unlock references nonexistent building", building_name)
+                        raise ValidationError("Unlock references nonexistent building: {0}".format(building_name,))
                     if not isinstance(number, (int, float)):
-                        raise ValidationError("Non-numeric number of required buildings in unlock", number)
+                        raise ValidationError("Non-numeric number of required buildings in unlock: {0}".format(number,))
             if 'upgrades' in unlock:
                 if not isinstance(unlock['upgrades'], list):
                     raise ValidationError("Unlock's upgrades field must be a list")
                 for upgrade_name in unlock['upgrades']:
                     if upgrade_name not in model.upgrades:
-                        raise ValidationError("Unlock references nonexistent upgrade", upgrade_name)
+                        raise ValidationError("Unlock references nonexistent upgrade: {0}".format(upgrade_name,))
 
         def validate_modifier(modifier):
             """Validates modifier for a value (multipliers and so forth)"""
@@ -126,9 +128,9 @@ def validate_game_model(json_data):
                 raise ValidationError("Modifier of a value must be a json object with keys and values")
             for modify_type, value in modifier.items():
                 if modify_type not in ('multiplier',):
-                    raise ValidationError("Unknown key in value modifier", modify_type)
+                    raise ValidationError("Unknown key in value modifier: {0}".format(modify_type,))
                 if not isinstance(value, (int, float)):
-                    raise ValidationError("Non-numeric modifier value", modify_type, value)
+                    raise ValidationError("Non-numeric modifier value: {0} = {1}".format(modify_type, value))
 
         if len(json_data['resources']) != len(model.resources):
             raise ValidationError("Two resources share the same name")
@@ -151,12 +153,16 @@ def validate_game_model(json_data):
             validate_unlock(building.unlock)
             validate_resource_amounts(building.cost)
             if not isinstance(building.cost_factor, (int, float)):
-                raise ValidationError("Non-numeric cost factor for building", building.name, building.cost_factor)
+                raise ValidationError("Non-numeric cost factor for building {0}: {1}".format(
+                    building.name, building.cost_factor
+                ))
             validate_resource_amounts(building.income)
             validate_resource_amounts(building.storage)
             for resource_name in building.storage:
                 if model.resources[resource_name].maximum is None:
-                    raise ValidationError("Building has storage for an unlimited resource", building.name, resource_name)
+                    raise ValidationError("Building {0} has storage for an unlimited resource: {1}".format(
+                        building.name, resource_name
+                    ))
 
         #
         # UPGRADES
@@ -166,19 +172,21 @@ def validate_game_model(json_data):
             validate_resource_amounts(upgrade.cost)
             for building_name, effects in upgrade.buildings.items():
                 if building_name not in model.buildings:
-                    raise ValidationError("Upgrade affects nonexistent building", upgrade.name, building_name)
+                    raise ValidationError("Upgrade {0} affects nonexistent building {1}".format(
+                        upgrade.name, building_name
+                    ))
                 for effect_type in effects:
                     if effect_type not in ('cost', 'income'):
                         raise ValidationError(
-                            "Unknown effect specified for upgrade",
-                            upgrade.name, building_name, effect_type
+                            "Unknown effect specified for upgrade: {0} specifies {2} on {1}"
+                            .format(upgrade.name, building_name, effect_type)
                         )
                 if 'cost' in effects:
                     for resource_name, cost_modifier in effects['cost'].items():
                         if resource_name not in model.resources:
                             raise ValidationError(
-                                "Upgrade affects cost for nonexistent resource",
-                                upgrade.name, building_name, resource_name
+                                "Upgrade affects cost for nonexistent resource: {0} affects {2} cost of {1}"
+                                .format(upgrade.name, building_name, resource_name)
                             )
                         validate_modifier(cost_modifier)
 
@@ -186,8 +194,8 @@ def validate_game_model(json_data):
                     for resource_name, income_modifier in effects['income'].items():
                         if resource_name not in model.resources:
                             raise ValidationError(
-                                "Upgrade affects income for nonexistent resource",
-                                upgrade.name, building_name, resource_name
+                                "Upgrade affects income for nonexistent resource: {0} affects {2} income for {1}"
+                                .format(upgrade.name, building_name, resource_name)
                             )
                         validate_modifier(income_modifier)
 
@@ -198,7 +206,7 @@ def validate_game_model(json_data):
             raise ValidationError("New game state must be a json object with keys and values")
         for key in model.new_game:
             if key not in ('resources', 'buildings', 'upgrades'):
-                raise ValidationError("Invalid key in new game state", key)
+                raise ValidationError("Invalid key in new game state: {0}".format(key,))
             if 'resources' in model.new_game:
                 validate_resource_amounts(model.new_game['resources'])
             if 'buildings' in model.new_game:
@@ -206,23 +214,23 @@ def validate_game_model(json_data):
                     raise ValidationError("New game building counts must be a json object with keys and values")
                 for building_name, number in model.new_game['buildings'].items():
                     if building_name not in model.buildings:
-                        raise ValidationError("Nonexistent building in new game state", building_name)
+                        raise ValidationError("Nonexistent building in new game state: {0}".format(building_name,))
                     if not isinstance(number, (int, float)):
                         raise ValidationError(
-                            "Non-numeric number of buildings in new game state",
-                            building_name, number
+                            "Non-numeric number of buildings in new game state: {0} * {1}"
+                            .format(building_name, number)
                         )
             if 'upgrades' in model.new_game:
                 if not isinstance(model.new_game['upgrades'], list):
                     raise ValidationError("Upgrades value in new game state is not a list")
                 for upgrade_name in model.new_game['upgrades']:
                     if upgrade_name not in model.upgrades:
-                        raise ValidationError("Nonexistent upgrade in new game state", upgrade_name)
+                        raise ValidationError("Nonexistent upgrade in new game state: {0}".format(upgrade_name,))
 
     except KeyError as ex:
         raise ValidationError("Missing key: {0}".format(ex.args[0]))
     except (TypeError, AttributeError) as ex:  # pragma: no cover
-        raise ValidationError("Wrong type of value somewhere", ex.args)
+        raise ValidationError("Wrong type of value somewhere: {0}".format(ex.args,))
 
     return model
 
@@ -337,6 +345,7 @@ class GameInstance(object):
         self.fast_forward(current_time)
         if (
             upgrade_name in self.model.upgrades and
+            upgrade_name not in self.upgrades and
             self.requirement_is_met(self.model.upgrades[upgrade_name].unlock) and
             self.pay_cost(self.model.upgrades[upgrade_name].cost)
         ):

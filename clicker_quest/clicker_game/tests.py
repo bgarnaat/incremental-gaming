@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
+from django.core.exceptions import ValidationError
 from django.conf import settings
 from clicker_game.models import ClickerGame, GameInstance
-from clicker_game.game_model import GameModel
 import factory
 import datetime
 # Create your tests here.
@@ -99,8 +99,8 @@ class GameValidationTest(TestCase):
             game_data=['invalid game'],
             name="invalid game"
         )
-        with self.assertRaises(ValueError):
-            game.save()
+        with self.assertRaises(ValidationError):
+            game.clean_fields()
 
 
 class GameInstanceTest(TestCase):

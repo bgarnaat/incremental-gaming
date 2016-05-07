@@ -1,8 +1,11 @@
+# coding=utf-8
 from __future__ import unicode_literals
 
+import json
 from django.db import models
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
+from django.contrib.postgres.forms.jsonb import InvalidJSONInput, JSONField as JSONField_form
 
 from clicker_game.game_model import validate_game_model
 
@@ -32,3 +35,13 @@ class GameInstance(models.Model):
     data = JSONField()
     modified = models.DateTimeField(auto_now_add=True)
     created = models.DateTimeField(auto_now_add=True)
+
+
+# customize json form field dump inside django to make it readable in forms
+def prepare_value(self, value):
+    if isinstance(value, InvalidJSONInput):
+        return value
+    return json.dumps(value, sort_keys=True, indent=4)
+
+# patch
+JSONField_form.prepare_value = prepare_value
