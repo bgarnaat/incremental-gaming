@@ -36,6 +36,8 @@ costs, all building costs etc.
 building's output should be reduced proportionally to the supply/demand of
 that resource (this will require similar logic on the front end counters)
 - it should be possible to have citizens, workers, and jobs a la kittens game
+- random events, websockets to the front end and server scheduling for their
+occurrence
 
 
 ## Development work
