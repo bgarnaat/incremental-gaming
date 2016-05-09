@@ -38,6 +38,7 @@ that resource (this will require similar logic on the front end counters)
 - it should be possible to have citizens, workers, and jobs a la kittens game
 - random events, websockets to the front end and server scheduling for their
 occurrence
+- seasons?
 
 
 ## Development work
