@@ -1,0 +1,248 @@
+{
+    "name": "cookie clicker",
+    "description": "Click cookies!",
+    "resources": [
+        {
+            "name": "cookies",
+            "description": "delicious cookies"
+        }
+    ],
+    "buildings": [
+        {
+            "name": "Cookies clicked",
+            "description": "Click to bake a cookie",
+            "cost": {"cookies": -1},
+            "cost_factor": 1
+        },
+        {
+            "name": "Cursor",
+            "description": "Clicks cookies for you",
+            "cost": {"cookies": 15},
+            "cost_factor": 1.15,
+            "income": {"cookies": 0.1}
+        },
+        {
+            "name": "Grandma",
+            "description": "A nice grandma to bake cookies",
+            "cost": {"cookies": 100},
+            "cost_factor": 1.15,
+            "income": {"cookies": 1.0}
+        },
+        {
+            "name": "Farm",
+            "description": "A farm where cookies grow on trees",
+            "cost": {"cookies": 1100},
+            "cost_factor": 1.15,
+            "income": {"cookies": 8}
+        },
+        {
+            "name": "Mine",
+            "description": "Mine cookies from the bowels of the Earth",
+            "cost": {"cookies": 12000},
+            "cost_factor": 1.15,
+            "income": {"cookies": 47}
+        },
+        {
+            "name": "Factory",
+            "description": "Cookie assembly lines",
+            "cost": {"cookies": 130000},
+            "cost_factor": 1.15,
+            "income": {"cookies": 260}
+        },
+        {
+            "name": "Bank",
+            "description": "Cookies with interest",
+            "cost": {"cookies": 1400000},
+            "cost_factor": 1.15,
+            "income": {"cookies": 1400}
+        },
+        {
+            "name": "Temple",
+            "description": "Worship cookies",
+            "cost": {"cookies": 20000000},
+            "cost_factor": 1.15,
+            "income": {"cookies": 7800}
+        }
+    ],
+    "upgrades": [
+        {
+            "name": "Reinforced index finger",
+            "description": "Doubles cursor income",
+            "cost": {"cookies": 100},
+            "unlock": {"buildings": {"Cursor": 1}},
+            "buildings": {"Cursor": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Carpal tunnel prevention cream",
+            "description": "Doubles cursor income",
+            "cost": {"cookies": 500},
+            "unlock": {"buildings": {"Cursor": 3}},
+            "buildings": {"Cursor": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Ambidextrous",
+            "description": "Doubles cursor income",
+            "cost": {"cookies": 10000},
+            "unlock": {"buildings": {"Cursor": 10}},
+            "buildings": {"Cursor": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Forwards from grandma",
+            "description": "Doubles grandma income",
+            "cost": {"cookies": 1000},
+            "unlock": {"buildings": {"Grandma": 1}},
+            "buildings": {"Grandma": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Steel-plated rolling pins",
+            "description": "Doubles grandma income",
+            "cost": {"cookies": 5000},
+            "unlock": {"buildings": {"Grandma": 5}},
+            "buildings": {"Grandma": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Lubricated dentures",
+            "description": "Doubles grandma income",
+            "cost": {"cookies": 50000},
+            "unlock": {"buildings": {"Grandma": 25}},
+            "buildings": {"Grandma": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Prune juice",
+            "description": "Doubles grandma income",
+            "cost": {"cookies": 5000000},
+            "unlock": {"buildings": {"Grandma": 50}},
+            "buildings": {"Grandma": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Cheap hoes",
+            "description": "Doubles farm income",
+            "cost": {"cookies": 11000},
+            "unlock": {"buildings": {"Farm": 1}},
+            "buildings": {"Farm": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Fertilizer",
+            "description": "Doubles farm income",
+            "cost": {"cookies": 55000},
+            "unlock": {"buildings": {"Farm": 5}},
+            "buildings": {"Farm": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Cookie trees",
+            "description": "Doubles farm income",
+            "cost": {"cookies": 550000},
+            "unlock": {"buildings": {"Farm": 25}},
+            "buildings": {"Farm": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Genetically-modified cookies",
+            "description": "Doubles farm income",
+            "cost": {"cookies": 55000000},
+            "unlock": {"buildings": {"Farm": 50}},
+            "buildings": {"Farm": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Sugar gas",
+            "description": "Doubles mine income",
+            "cost": {"cookies": 120000},
+            "unlock": {"buildings": {"Mine": 1}},
+            "buildings": {"Mine": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Megadrill",
+            "description": "Doubles mine income",
+            "cost": {"cookies": 600000},
+            "unlock": {"buildings": {"Mine": 5}},
+            "buildings": {"Mine": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Ultradrill",
+            "description": "Doubles mine income",
+            "cost": {"cookies": 6000000},
+            "unlock": {"buildings": {"Mine": 25}},
+            "buildings": {"Mine": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Ultimadrill",
+            "description": "Doubles mine income",
+            "cost": {"cookies": 600000000},
+            "unlock": {"buildings": {"Mine": 50}},
+            "buildings": {"Mine": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        
+        {
+            "name": "Sturdier conveyor belts",
+            "description": "Doubles factory income",
+            "cost": {"cookies": 1300000},
+            "unlock": {"buildings": {"Factory": 1}},
+            "buildings": {"Factory": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Child labor",
+            "description": "Doubles factory income",
+            "cost": {"cookies": 6500000},
+            "unlock": {"buildings": {"Factory": 5}},
+            "buildings": {"Factory": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Sweatshop",
+            "description": "Doubles factory income",
+            "cost": {"cookies": 65000000},
+            "unlock": {"buildings": {"Factory": 25}},
+            "buildings": {"Factory": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Radium reactors",
+            "description": "Doubles factory income",
+            "cost": {"cookies": 6500000000},
+            "unlock": {"buildings": {"Factory": 50}},
+            "buildings": {"Factory": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+
+        {
+            "name": "Taller tellers",
+            "description": "Doubles bank income",
+            "cost": {"cookies": 14000000},
+            "unlock": {"buildings": {"Bank": 1}},
+            "buildings": {"Bank": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Scissor-resistant credit cards",
+            "description": "Doubles bank income",
+            "cost": {"cookies": 70000000},
+            "unlock": {"buildings": {"Bank": 5}},
+            "buildings": {"Bank": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Acid-proof vaults",
+            "description": "Doubles bank income",
+            "cost": {"cookies": 700000000},
+            "unlock": {"buildings": {"Bank": 25}},
+            "buildings": {"Bank": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+
+        {
+            "name": "Golden idols",
+            "description": "Doubles temple income",
+            "cost": {"cookies": 200000000},
+            "unlock": {"buildings": {"Temple": 1}},
+            "buildings": {"Temple": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Sacrifices",
+            "description": "Doubles temple income",
+            "cost": {"cookies": 1000000000},
+            "unlock": {"buildings": {"Temple": 5}},
+            "buildings": {"Temple": {"income": {"cookies": {"multiplier": 2}}}}
+        },
+        {
+            "name": "Delicious blessing",
+            "description": "Doubles temple income",
+            "cost": {"cookies": 10000000000},
+            "unlock": {"buildings": {"Temple": 25}},
+            "buildings": {"Temple": {"income": {"cookies": {"multiplier": 2}}}}
+        }
+    ],
+    "new_game": {"resources": {"cookies": 10}}
+}
